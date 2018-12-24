@@ -18,7 +18,7 @@ git checkout branch名
 ```
 step3：上传文件，将文件的本地改动同步到线上
 ```
-git add 文件名
+git add 文件名  # git add -A 可以上传本地项目文件夹中所有文件
 git commit -m  "评论" 
 git push origin master
 ```
