@@ -31,3 +31,9 @@ step2：在github个人主页上创建新repository，将其URL与上述本地�
 ```
 git clone 新repository的URL
 ```
+
+### pull的具体方法
+执行以下代码后，会自动检查线上哪些文件有哪些更新，自动把线上同步到线下
+```
+ git pull origin master
+```
