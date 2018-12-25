@@ -3,7 +3,7 @@ my graduation project
 
 ### 毕设进度
 * 现阶段已完成编码解码的代码
-* 下一步准备IMGA的组建、测试（主要使用继承啦）
+* 下一步准备IMGA的组建、测试
 * 再下一步进行多目标的实验
 
 ### push的具体方法
@@ -15,7 +15,7 @@ cd /D/TYT/Study/graduationProject/multi-object-JSSP-with-lot-spliting  # 这是�
 ```
 git branch
 ```
-* 将文件加入缓冲区
+* 将文件加入缓冲区，所有新增的和修改过的文件都要执行git add命令添加后才能commit
 
 ```
 git add 文件名  # git add -A 可以上传本地项目文件夹中所有文件
@@ -60,4 +60,14 @@ git branch
 * 切换分支
 ```
 git checkout branch名  
+```
+* 改动gitignore后需要清空缓冲区使之生效，然后再重新add和commit
+```
+git rm -r --cached .
+git add .
+git commit -m 
+```
+* 把已经add了的文件撤回
+```
+git rm -r --cached xxx  
 ```
