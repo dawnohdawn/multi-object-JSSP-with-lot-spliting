@@ -54,3 +54,45 @@ class individualPreferenceCode:
         while (pos1 == pos2):
             pos2 = random.randint(1, self.machineNum) - 1
         self.preferenceCode[pos1], self.preferenceCode[pos2] = self.preferenceCode[pos2], self.preferenceCode[pos1]
+
+
+    def insertAJobIntoAPosInsideAVec(self, vecInd, jobInd, insertPos):
+        """
+        功能：
+        将序号为vecInd的Vec里面，序号为jobInd的工件，插入位置insertPos，可前插可后插
+
+        输入：
+        vecInd:      改变哪个机器的vec
+        jobInd:      改变哪个job的位置
+        insertPos:   插到哪个位置
+        """
+        self.preferenceCode[vecInd].remove(jobInd)
+        self.preferenceCode[vecInd].insert(insertPos, jobInd)
+
+
+    def insertAJobInsideAVecEarlierOrLaterFewPos(self, vecInd, jobInd, gap):
+        """
+        功能：
+        将序号为vecInd的Vec里面，序号为jobInd的工件，插入比原位置更前earlier的位置
+
+        输入：
+        vecInd:      改变哪个机器的vec
+        jobInd:      改变哪个job的位置
+        gap:         提前或者延后多少，可为正数为提前，负数为延后
+        """
+        originInd = self.preferenceCode[vecInd].index(jobInd)
+        newInd = originInd - gap
+        if newInd < 0:
+            newInd = 0
+        if newInd > self.machineNum:
+            newInd = self.machineNum - 1
+
+        self.insertAJobIntoAPosInsideAVec(vecInd, jobInd, newInd)
+
+
+
+# test = individualPreferenceCode(5, 4)
+# test.initilizePreferenceCode()
+# print(test.preferenceCode)
+# test.insertAJobInsideAVecEarlierOrLaterFewPos(0, 3, -1)
+# print(test.preferenceCode)

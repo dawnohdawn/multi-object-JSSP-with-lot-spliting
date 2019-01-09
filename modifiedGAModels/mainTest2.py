@@ -177,8 +177,8 @@ test = comparisonsOfAlgorithms([originalGATest, originalGAIITest])
 test = originalGATest
 # test = originalGAIITest
 print(type(test))
-for i in range(1000):
+for i in range(1):
     print('outeriter', i)
-    test.iterate(1, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, needcalAllMakespan=1, muteEveryIter=1, muteResult=0,
+    test.iterate(10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, needcalAllMakespan=1, muteEveryIter=1, muteResult=0,
                  startIter=100, saveDetailsUsingDF=1)
     print(test.getMakespansOfAllIndividuals())

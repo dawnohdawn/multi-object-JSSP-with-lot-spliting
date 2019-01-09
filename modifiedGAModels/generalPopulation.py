@@ -320,6 +320,8 @@ class generalPopulation:
         kw['startIter']     输出的迭代代数从此号码开始，如果不指定就从0开始
         kw['saveDetailsUsingDF']  是否把每一代的最好makespan都记录在一个DataFrame即self.details
         """
+        progress = [0 for _ in range(iterNum)]
+
         # 第一代在此计算所有individual的makespan
         if needcalAllMakespan == 1:
             self.calAllMakespan()
@@ -402,10 +404,12 @@ class generalPopulation:
                 # 子代父代两两择优
                 if child1.makespan < parent1.makespan:
                     newPop.append(child1)
+                    progress[iterInd] += 1
                 else:
                     newPop.append(parent1)
                 if child2.makespan < parent2.makespan:
                     newPop.append(child2)
+                    progress[iterInd] += 1
                 else:
                     newPop.append(parent2)
 
@@ -435,14 +439,17 @@ class generalPopulation:
             # print(min(self.getMakespansOfAllIndividuals()))
             # print(self.getMakespansOfAllIndividuals())
 
+        print(progress)
 
 
-    def decodeAFixedIndividual(self, codeLists):
+
+    def decodeAFixedIndividual(self, codeLists, filename):
         """
         功能：       输入三条编码，观察解码过程，并生成甘特图
 
         输入：
         codeLists    为一个list，里面放着三条编码
+        filename     一个文件前缀名，例如'gantData'
         """
         sublotNum = codeLists[0]
         sublotSizes = codeLists[1]
@@ -456,9 +463,15 @@ class generalPopulation:
             item.sublotSizes = sublotSizes[i]
         bestIndividual.segment2.preferenceCode = preferenceCode
 
-        # 解码，生成甘特图
+        # 解码，生成甘特时间表
         solu = self.solutionClassName(bestIndividual)
         solu.run(mute=1)
         # solu.printResults()
-        solu.generateGantTimetable()
+        solu.generateGantTimetable(filename = "gantFiles\\" + filename)
         print('makespan: ', solu.getMakespan())
+
+        # 绘制甘特图
+        csvName = filename + '.csv'
+        pngName = filename + '.png'
+        drawGantChart(fromFilename = "gantFiles\\" + csvName, toFilename = "gantFiles\\" + pngName)
+        print('gantChart figure', pngName, 'done: {}'.format(PATH + "\\gantFiles\\" + pngName))

@@ -13,7 +13,8 @@ PATH = os.path.abspath('.')
 
 # 全局变量
 
-problemInd = 1
+
+problemInd = 2
 
 """ 
 problemInd               问题编号，需要手动指定
@@ -149,6 +150,28 @@ for i in range(machineNum):
 
 
 # 一些全局函数
+
+def chooseARandomNumberExceptThis(minNum, maxNum, num):
+    """
+    功能：
+    随机取除了num以外的0~N的整数
+
+    输入：
+    N       0~N为范围
+    num     不能取的那个数
+
+    输出：
+    一个随机数
+    """
+    if minNum == maxNum:
+        return minNum
+
+    chosenNum = random.randint(minNum, maxNum)
+    while chosenNum == num:
+        chosenNum = random.randint(minNum, maxNum)
+
+    return chosenNum
+
 
 def chooseTwoNumByRandom(N):
     """
@@ -337,3 +360,54 @@ def getBestOrWorstIndexs(mode, makespanList, indNum):
             temp[temp.index(max(temp))] = Inf
 
     return indexs
+
+
+
+def drawGantChart(fromFilename = 'gantData.csv', toFilename = 'gantFig.png'):
+    """
+    使用甘特图时间表绘制甘特图
+    fromFilename  时间表csv文件名
+    toFilename    甘特图文件名
+    如果想改变颜色，颜色名参考：https://matplotlib.org/users/colors.html
+    """
+    plt.rcParams['font.sans-serif']=['SimHei'] # 用来正常显示中文标签
+    plt.rcParams['axes.unicode_minus']=False # 用来正常显示负号
+
+    height=16 # 柱体高度，设为2的整数倍，方便Y轴label居中，如果设的过大，柱体间的间距就看不到了，需要修改下面间隔为更大的值
+    interval=4 # 柱体间的间隔
+    # colors = ("turquoise","crimson","black","red","yellow","green","brown","blue") # 颜色，不够再加
+    colors = ("wheat","tan","lavender","lightblue","silver","pink") # 颜色，不够再加
+    # colors = ("ivory","ivory","ivory","ivory","ivory","ivory") # 颜色，不够再加
+    x_label=u"调度时刻" # 设置x轴label
+
+    # df = pd.read_csv(io.StringIO(data), header=None, names=["Machine", "Start", "Finish","Title"] )
+    df = pd.read_csv(PATH+"\\"+fromFilename, header=None, names=["Machine", "Start", "Finish","Title"])
+    df["Diff"] = df.Finish - df.Start
+    fig,ax=plt.subplots(figsize=(30,10))
+    labels=[]
+    count=0;
+    for i,machine in enumerate(df.groupby("Machine")):
+        labels.append(machine[0])
+        data=machine[1]
+        for index,row in data.iterrows():
+    #         ax.broken_barh([(row["Start"],row["Diff"])], ((height+interval)*i+interval,height), facecolors=colors[i], edgecolor='brown')
+    #         ax.broken_barh([(row["Start"],row["Diff"])], ((height+interval)*i+interval,height), facecolors='ivory', edgecolor='brown')
+            if(row["Title"] == '*'):
+                ax.broken_barh([(row["Start"],row["Diff"])], ((height+interval)*i+interval,height), facecolors='navy', edgecolor='brown')
+            else:
+#                 ax.broken_barh([(row["Start"],row["Diff"])], ((height+interval)*i+interval,height), facecolors=colors[int(row['Title'][0])], edgecolor='brown')
+                ax.broken_barh([(row["Start"],row["Diff"])], ((height+interval)*i+interval,height), facecolors=colors[int(row['Title'].split('-')[0])], edgecolor='brown')  # 使显示的lot号、sublot号、机器号都能适用于一位数以上的
+#             plt.text(row["Start"], (height+interval)*(i+1),row['Title'],fontsize=10)  # fontsize='x-small'
+            plt.text(row["Start"], (height+interval)*(i+1)-height/2,row['Title'],fontsize=10)  # fontsize='x-small'
+            if(row["Finish"] > count):
+                count = row["Finish"]
+    ax.set_ylim(0, (height+interval)*len(labels)+interval)
+    ax.set_xlim(0, count+2)
+    ax.set_xlabel(x_label)
+    ax.set_yticks(range(int(interval+height/2),(height+interval)*len(labels),(height+interval)))
+    ax.set_yticklabels(labels)
+    # ax.grid(True) # 显示网格
+    ax.xaxis.grid(True) # 只显示x轴网格
+    # ax.yaxis.grid(True) # 只显示y轴网格
+    plt.savefig(PATH+"\\"+toFilename,dpi=160)
+    # plt.show()

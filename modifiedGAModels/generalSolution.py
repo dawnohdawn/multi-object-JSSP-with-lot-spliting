@@ -247,6 +247,33 @@ class generalSolution:
             print(lot)
 
 
+    def getLastFinishingMachineInd(self):
+        """
+        功能：
+        返回最晚完工的机器号
+
+        输出：
+        一个机器index
+        """
+        finishingTimes = [item.idleMoment for item in self.machineList]
+
+        return finishingTimes.index(max(finishingTimes))
+
+
+    def getLastFinishingSublot(self):
+        """
+        功能：
+        返回最晚完成加工的sublot的lot序号，sublot序号
+
+        输出：
+        lot序号，sublot序号
+        """
+        lastMachine = self.getLastFinishingMachineInd()
+        lastSublot = self.machineList[lastMachine].assignedList[-1]   # (lot号，sublot号，工件数，工序号，最早看开始时间，实际开始时间，实际结束时间，准备工序时间)
+
+        return lastSublot[0], lastSublot[1]
+
+
     def getMakespan(self):
         """
         返回完工时间
@@ -254,11 +281,14 @@ class generalSolution:
         return max([item.idleMoment for item in self.machineList])
 
 
-    def generateGantTimetable(self, filename='gantData.csv'):
+    def generateGantTimetable(self, filename='gantData'):
         """
         为该solution生成甘特图时间表
         filename  csv文件路径
         """
+        csvName = filename + '.csv'
+        # pngName = filename + '.png'
+
         gantData = []
         for machInd, machine in enumerate(self.machineList):
             for item in machine.assignedList:
@@ -267,7 +297,10 @@ class generalSolution:
                 gantData.append(['M%d' % machInd, item[5] + item[7], item[6], '{lotInd}-{sublotInd}-{operationInd}'.\
                                 format(lotInd=item[0], sublotInd=item[1], operationInd=item[3])])
         df = pd.DataFrame(gantData, columns=["Machine", "Start", "Finish", "Title"])
-        df.to_csv(PATH + "\\" + filename, header=False)
-        print('gantChart timetable', filename, 'done: {}'.format(PATH + "\\" + filename))
+        df.to_csv(PATH + "\\" + csvName, header=False)
+        print('gantChart timetable', csvName, 'done: {}'.format(PATH + "\\" + csvName))
+
+        # drawGantChart(fromFilename = csvName, toFilename = pngName)
+        # print('gantChart figure', pngName, 'done: {}'.format(PATH + "\\" + pngName))
 
 
