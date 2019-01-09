@@ -9,25 +9,25 @@ from originalIMGA import originalIMGA
 from threeIMGA import threeIMGA
 
 
-# comparisonsOfAlgorithms类测试
-
-print('构建')
-originalGATest = originalGA(201, lotNum, lotSizes, machineNum)
-originalIMGATest = originalIMGA(3, 67, lotNum, lotSizes, machineNum)
-threeIMGATest = threeIMGA(67, lotNum, lotSizes, machineNum)
-test = comparisonsOfAlgorithms([originalGATest, originalIMGATest, threeIMGATest])
-
-
-print('算法各自跑多遍')
-test.runManyTimes(10)
-print(test.makespans.head())
-print(' ')
+# # test = threeIMGA(67, lotNum, lotSizes, machineNum)
+# test = originalIMGA(3, 67, lotNum, lotSizes, machineNum)
+# for i in range(10):
+#     print('outeriter', i)
+#     test.modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter = 1,  muteGAResult = 1, \
+#                       muteEveryOuterIter = 1, muteOuterResult = 0, saveDetailsUsingDF = 1)
+#     for item in test.getMakespansOfAllIndividuals():
+#         print(item)
 
 
-# print('单次运行算法收敛对比')
-# test.plotOneRun('convergComparison.png')
-# print(test.oneRunData.head())
-# print(' ')
+
+test = generalPopulation(200, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
+for i in range(1000):
+    print('outeriter', i)
+    test.iterate(1, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needcalAllMakespan=1, muteEveryIter=1, muteResult=0,
+                 startIter=100, saveDetailsUsingDF=1)
+    print(test.getMakespansOfAllIndividuals())
+
+
 
 
 

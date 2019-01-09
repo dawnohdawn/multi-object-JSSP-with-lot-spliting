@@ -48,7 +48,7 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(1000, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3,
+                    self.algorithms[algorithmInd].iterate(1000, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
                                                           needCalAllMakespan=1, \
                                                           muteEveryIter=1, muteResult=0, startIter=0,
                                                           saveDetailsUsingDF=1)
@@ -59,7 +59,7 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetModel()
-                    self.algorithms[algorithmInd].modelIterate(100, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3,
+                    self.algorithms[algorithmInd].modelIterate(100, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
                                                                'exchange', 10, \
                                                                muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
                                                                muteOuterResult=0, saveDetailsUsingDF=1)
@@ -67,6 +67,8 @@ class comparisonsOfAlgorithms:
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
             self.makespans.loc[len(self.makespans)] = makespansOfThisRun
+
+            print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
 
 
     def saveMakespansDF(self, filename):

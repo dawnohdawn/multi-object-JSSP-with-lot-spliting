@@ -116,12 +116,20 @@ class threeIMGA(generalGAModel):
 
                 # 三个种群有不同的进化参数
                 if popInd == 0:
-                    self.model[popInd].iterate(innerIterNum, p1, p2, 0, ps1, 0, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    # self.model[popInd].iterate(innerIterNum, p1, p2, 0, ps1, 0, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    #                            muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
+                    #                            startIter=outerIterInd * innerIterNum, \
+                    #                            saveDetailsUsingDF=saveDetailsUsingDF)
+                    self.model[popInd].iterate(innerIterNum, 0.9, 0.9, 0, ps1, 0, ps3, ps4, ps5, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF)
                 elif popInd == 1:
-                    self.model[popInd].iterate(innerIterNum, p1, 0, p3, 0, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    # self.model[popInd].iterate(innerIterNum, p1, 0, p3, 0, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    #                            muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
+                    #                            startIter=outerIterInd * innerIterNum, \
+                    #                            saveDetailsUsingDF=saveDetailsUsingDF)
+                    self.model[popInd].iterate(innerIterNum, 0.9, 0, 0.9, 0, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF)

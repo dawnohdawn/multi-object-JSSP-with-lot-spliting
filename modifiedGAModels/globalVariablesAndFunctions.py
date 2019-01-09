@@ -13,7 +13,7 @@ PATH = os.path.abspath('.')
 
 # 全局变量
 
-problemInd = 2
+problemInd = 1
 
 """ 
 problemInd               问题编号，需要手动指定
@@ -150,10 +150,96 @@ for i in range(machineNum):
 
 # 一些全局函数
 
+def chooseTwoNumByRandom(N):
+    """
+    功能：         随机选择两个不重复的[0,N]的随机整数
+
+    输出：
+    pos1, pos2     两个随机整数
+    """
+    pos1 = random.randint(0, N)
+    pos2 = random.randint(0, N)
+    while pos1 == pos2:
+        pos2 = random.randint(0, N)
+
+    return pos1, pos2
+
+
+def chooseOneNumByTournament(makespanList, N):
+    """
+    功能：          用锦标赛法选择一个个体，即从随机N个体中选出最好的一个个体
+
+    输入：
+    makespanList    输入一个完工时间的list
+    N               随机个体的个数，一般为3
+
+    输出：
+    chosenIndex     被选中的个体的序号，范围为[0,len(makespanList)-1]
+    """
+    competitorsIndexs = [random.randint(0, len(makespanList) - 1) for i in range(N)]
+    competitorsMakespans = [makespanList[item] for item in competitorsIndexs]
+
+    return competitorsIndexs[competitorsMakespans.index(min(competitorsMakespans))]
+
+
+def chooseTwoNumByTournament(makespanList, N):
+    """
+    功能：          用锦标赛法选出两个不同的个体
+
+    输入：
+    makespanList    输入一个完工时间的list
+    N               随机个体的个数，一般为3
+
+    输出：
+    chosenIndexs     被选中的两个个体的序号，范围为[0,len(makespanList)-1]
+    """
+    pos1 = chooseOneNumByTournament(makespanList, N)
+    pos2 = chooseOneNumByTournament(makespanList, N)
+    while pos1 == pos2:
+        pos2 = chooseOneNumByTournament(makespanList, N)
+
+    return pos1, pos2
+
+
 def calRoulette(makespanList):
     """
-    由完工时间列表计算轮盘
+    版本信息：     ver2
+                  该版本不会改变传入makespanList的值
+
+    功能：        由完工时间列表先计算fitness，再计算轮盘
+
+    输入：
     makespanList  输入一个完工时间的list
+
+    输出：
+    roulette      输出一个轮盘概率list
+    """
+    makespanMax = max(makespanList)
+    fitnessList = []
+    for i in range(len(makespanList)):
+        fitnessList.append(makespanMax - makespanList[i] + 1)
+    fitnessSum = sum(fitnessList)
+    for i in range(len(fitnessList)):
+        fitnessList[i] /= fitnessSum
+    roulette = []
+    temp = 0
+    for i in range(len(fitnessList)):
+        temp += fitnessList[i]
+        roulette.append(temp)
+    return roulette
+
+
+def calRoulette_old(makespanList):
+    """
+    版本信息：     ver1
+                  发现该函数会改变传入makespanList的值，所以写了第二版
+
+    功能：        由完工时间列表先计算fitness，再计算轮盘
+
+    输入：
+    makespanList  输入一个完工时间的list
+
+    输出：
     roulette      输出一个轮盘概率list
     """
     makespanMax = max(makespanList)
@@ -167,6 +253,33 @@ def calRoulette(makespanList):
     for i in range(len(makespanList)):
         temp += makespanList[i]
         roulette.append(temp)
+    return roulette
+
+
+def calRouletteWithRank(makespanList, Nmin):
+    """
+    功能：         计算基于排序的轮盘 Linear Ranking Selection
+
+    输入：
+    makespanList  输入一个完工时间的list
+    Nmin          最差个体在种群中出现次数的期望值，Nmax=2-Nmin
+                  根据'Gradual distributed real-coded genetic algorithms'，Nmin越小，seletive pressure越大，给较优个体的机会越多
+
+    输出：
+    roulette      输出一个轮盘概率list
+    """
+    rankList = pd.Series(makespanList)
+    rankList = list(rankList.rank(method='average'))
+
+    Nmax = 2 - Nmin
+    pList = [(Nmax - (Nmax - Nmin) * (item - 1) / (len(rankList) - 1)) / len(rankList) for item in rankList]
+
+    roulette = []
+    temp = 0
+    for i in range(len(pList)):
+        temp += pList[i]
+        roulette.append(temp)
+
     return roulette
 
 
