@@ -1,4 +1,6 @@
 from globalVariablesAndFunctions import *
+from originalGA import originalGA
+from mainTest2 import originalGAII
 PATH = os.path.abspath('.')
 
 
@@ -29,8 +31,10 @@ class generalGAModel:
         self.popClassName = popClassName
         self.solutionClassName = solutionClassName
 
-        self.model = [
-            self.popClassName(self.popSize, self.lotNum, self.lotSizes, self.machineNum, self.individualClassName, \
+        if popClassName == originalGA or popClassName == originalGAII:
+            self.model = [self.popClassName(self.popSize, self.lotNum, self.lotSizes, self.machineNum) for i in range(self.modelSize)]
+        else:
+            self.model = [self.popClassName(self.popSize, self.lotNum, self.lotSizes, self.machineNum, self.individualClassName, \
                               self.solutionClassName) for i in range(self.modelSize)]
 
         self.detailsOfModel = pd.DataFrame(columns=['pop', 'iter', 'outerIter', 'bestMakespan'])

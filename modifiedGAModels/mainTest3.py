@@ -1,23 +1,24 @@
-from generalGAModel import generalGAModel
+from globalVariablesAndFunctions import *
 from generalIndividual import generalIndividual
 from generalPopulation import  generalPopulation
 from generalSolution import generalSolution
-from globalVariablesAndFunctions import *
+from generalGAModel import generalGAModel
+from comparisonsOfAlgorithms import comparisonsOfAlgorithms
 from originalGA import originalGA
+from originalIMGA import originalIMGA
+from threeIMGA import threeIMGA
+from mainTest2 import originalGAII
 
 
-class threeIMGA(generalGAModel):
-    """
-    继承generalGAModel得到
-    """
+
+class threeIMGAII(generalGAModel):
 
     def __init__(self, popSize, lotNum, lotSizes, machineNum):
         """
         指定了modelSize是3，individual类是generalIndividual，pop类是generalPopulation，solution类是generalSolution
         """
-        # super(threeIMGA, self).__init__(3, popSize, lotNum, lotSizes, machineNum, generalIndividual, \
-        #                                 generalPopulation, generalSolution)
-        super(threeIMGA, self).__init__(3, popSize, lotNum, lotSizes, machineNum, generalIndividual, originalGA, generalSolution)
+        super(threeIMGAII, self).__init__(3, popSize, lotNum, lotSizes, machineNum, generalIndividual, originalGAII, generalSolution)
+
 
     def getBestAndRamdomIndividualOfPopulation(self, popInd, choosePercentage):
         """
@@ -122,24 +123,27 @@ class threeIMGA(generalGAModel):
                     #                            muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                     #                            startIter=outerIterInd * innerIterNum, \
                     #                            saveDetailsUsingDF=saveDetailsUsingDF)
-                    self.model[popInd].iterate(innerIterNum, 0.9, 0.9, 0, ps1, 0, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(innerIterNum, p1, p2, p3, ps1, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, \
+                                               neighbourType = 's1')
                 elif popInd == 1:
                     # self.model[popInd].iterate(innerIterNum, p1, 0, p3, 0, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
                     #                            muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                     #                            startIter=outerIterInd * innerIterNum, \
                     #                            saveDetailsUsingDF=saveDetailsUsingDF)
-                    self.model[popInd].iterate(innerIterNum, 0.9, 0, 0.9, 0, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(innerIterNum, p1, p2, p3, ps1, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, \
+                                               neighbourType='s2')
                 elif popInd == 2:
                     self.model[popInd].iterate(innerIterNum, p1, p2, p3, ps1, ps2, ps3, ps4, ps5, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryGAIter, muteResult=muteGAResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, \
+                                               neighbourType='random')
 
                 # 记录到dataframe里
                 if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
@@ -164,3 +168,32 @@ class threeIMGA(generalGAModel):
         # 整理一下这个dataframe
         if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
             self.detailsOfModel = self.detailsOfModel.groupby(['iter']).min()
+
+
+
+
+
+# test = threeIMGA(40, lotNum, lotSizes, machineNum)
+test = threeIMGAII(40, lotNum, lotSizes, machineNum)
+
+for i in range(10):
+    print('outeriter', i)
+    test.modelIterate(5, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter = 1,  muteGAResult = 1, \
+                      muteEveryOuterIter = 0, muteOuterResult = 0, saveDetailsUsingDF = 1)
+    for item in test.getMakespansOfAllIndividuals():
+        print(item)
+    # test.model[0].decodeAFixedIndividual(test.getBestIndividualCodes(), 'gant-outerIter-%d'%i)
+
+
+
+# print('构建')
+# threeIMGATest = threeIMGA(4, lotNum, lotSizes, machineNum)
+# threeIMGAIITest = threeIMGAII(4, lotNum, lotSizes, machineNum)
+# test = comparisonsOfAlgorithms([threeIMGATest, threeIMGAIITest])
+# test = comparisonsOfAlgorithms([threeIMGAIITest])
+#
+#
+# print('算法各自跑多遍')
+# test.runManyTimes(2)
+# print(test.makespans.head())
+# print(' ')

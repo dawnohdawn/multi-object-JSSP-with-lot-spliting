@@ -332,7 +332,6 @@ class generalPopulation:
         # 开始迭代
         for iterInd in range(iterNum):
 
-
             # 构建父代的序号集，从上一代中选择个体，有以下五种方法
             # 1-无放回选择
             parentsIndexs = [i for i in range(self.popSize)]
@@ -365,7 +364,6 @@ class generalPopulation:
             # bestInd = self.getBestIndividualsIndexs(1)[0]
             # replacePos = random.randint(0, self.popSize - 1)
             # parentsIndexs[replacePos] = bestInd
-
 
             # 由相邻父代两两生成子代
             newPop = []
@@ -439,7 +437,8 @@ class generalPopulation:
             # print(min(self.getMakespansOfAllIndividuals()))
             # print(self.getMakespansOfAllIndividuals())
 
-        print(progress)
+        # 打印progress可以看到每个种群的每一代有多少个体在交叉变异种进步了
+        # print(progress)
 
 
 
@@ -475,3 +474,6 @@ class generalPopulation:
         pngName = filename + '.png'
         drawGantChart(fromFilename = "gantFiles\\" + csvName, toFilename = "gantFiles\\" + pngName)
         print('gantChart figure', pngName, 'done: {}'.format(PATH + "\\gantFiles\\" + pngName))
+
+
+

@@ -6,7 +6,7 @@ from globalVariablesAndFunctions import *
 from comparisonsOfAlgorithms import comparisonsOfAlgorithms
 
 
-# 构建原始单种群GA类：originalGA
+# 构建单种群GA类：originalGAII
 class originalGAII(generalPopulation):
     """
     继承generalPopulation得到
@@ -16,7 +16,9 @@ class originalGAII(generalPopulation):
         """
         指定了individual类是generalIndividual，solution类是generalSolution
         """
+
         super(originalGAII, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
+
 
     def iterate(self, iterNum, p1, p2, p3, ps1, ps2, ps3, ps4, ps5, needcalAllMakespan=1, muteEveryIter=0,
                  muteResult=0, **kw):
@@ -38,7 +40,10 @@ class originalGAII(generalPopulation):
         可选输入：
         kw['startIter']     输出的迭代代数从此号码开始，如果不指定就从0开始
         kw['saveDetailsUsingDF']  是否把每一代的最好makespan都记录在一个DataFrame即self.details
+        kw['neighbourType']      该pop的邻域搜索的模式 s1 s2 random
         """
+        progress = [0 for _ in range(iterNum)]
+
         # 第一代在此计算所有individual的makespan
         if needcalAllMakespan == 1:
             self.calAllMakespan()
@@ -49,11 +54,10 @@ class originalGAII(generalPopulation):
         # 开始迭代
         for iterInd in range(iterNum):
 
-
             # 构建父代的序号集，从上一代中选择个体，有以下五种方法
             # 1-无放回选择
-            # parentsIndexs = [i for i in range(self.popSize)]
-            # random.shuffle(parentsIndexs)
+            parentsIndexs = [i for i in range(self.popSize)]
+            random.shuffle(parentsIndexs)
             # 2-有放回选择-轮盘赌
             # roulette = calRoulette([item.makespan for item in self.pop])  # 计算轮盘list
             # parentsIndexs = []
@@ -64,11 +68,11 @@ class originalGAII(generalPopulation):
             # for i in range(int(self.popSize / 2)):
             #     parentsIndexs.extend(chooseTwoNumByTournament([item.makespan for item in self.pop], 3))
             # 4-有放回选择-随机选
-            parentsIndexs = []
-            for i in range(int(self.popSize / 2)):
-                parentsIndexs.extend(chooseTwoNumByRandom(self.popSize - 1))
+            # parentsIndexs = []
+            # for i in range(int(self.popSize / 2)):
+            #     parentsIndexs.extend(chooseTwoNumByRandom(self.popSize - 1))
             # 5-有放回选择-线性排名轮盘赌
-            # roulette = calRouletteWithRank([item.makespan for item in self.pop], 1)  # 计算轮盘list
+            # roulette = calRouletteWithRank([item.makespan for item in self.pop], 0.6)  # 计算轮盘list
             # parentsIndexs = []
             # for i in range(int(self.popSize / 2)):
             #     parentsIndexs.extend(chooseTwoNumByRoulette(roulette))
@@ -82,13 +86,6 @@ class originalGAII(generalPopulation):
             # bestInd = self.getBestIndividualsIndexs(1)[0]
             # replacePos = random.randint(0, self.popSize - 1)
             # parentsIndexs[replacePos] = bestInd
-            # 检查上届最好个体是否被选入父代，如果不在，就随机选一个替换为最优个体
-            parentsMakespans = [self.pop[ind].makespan for ind in parentsIndexs]
-            if self.getBestMakespan() not in parentsMakespans:
-                bestInd = self.getBestIndividualsIndexs(1)[0]
-                replacePos = random.randint(0, self.popSize - 1)
-                parentsIndexs[replacePos] = bestInd
-
 
             # 由相邻父代两两生成子代
             newPop = []
@@ -127,16 +124,36 @@ class originalGAII(generalPopulation):
                 # 子代父代两两择优
                 if child1.makespan < parent1.makespan:
                     newPop.append(child1)
+                    progress[iterInd] += 1
                 else:
                     newPop.append(parent1)
                 if child2.makespan < parent2.makespan:
                     newPop.append(child2)
+                    progress[iterInd] += 1
                 else:
                     newPop.append(parent2)
 
             # 将生成好的newPop深复制给pop
             self.pop = copy.deepcopy(newPop)
             # print(self.getMakespansOfAllIndividuals())
+
+            # 邻域搜索
+            if 'neighbourType' in kw.keys():
+                bestIndexs = self.getBestIndividualsIndexs(5)
+                for ind in bestIndexs:
+                    self.pop[ind].neighbourSearch(kw['neighbourType'], 1, 5, generalSolution)
+
+                # chosenNeighbour = random.randint(0, 4)
+                # if chosenNeighbour == 0:
+                #     self.pop[ind].neighbourSearch('s1n1', 5, generalSolution)
+                # elif chosenNeighbour == 1:
+                #     self.pop[ind].neighbourSearch('s1n2', 5, generalSolution)
+                # elif chosenNeighbour == 2:
+                #     self.pop[ind].neighbourSearch('s1n3', 5, generalSolution)
+                # elif chosenNeighbour == 3:
+                #     self.pop[ind].neighbourSearch('s2n1', 5, generalSolution)
+                # elif chosenNeighbour == 4:
+                #     self.pop[ind].neighbourSearch('s2n2', 5, generalSolution)
 
             # 如果mute为0，才去打印每次迭代最好makespan
             if muteEveryIter == 0:
@@ -160,12 +177,14 @@ class originalGAII(generalPopulation):
             # print(min(self.getMakespansOfAllIndividuals()))
             # print(self.getMakespansOfAllIndividuals())
 
+        # print(progress)
 
 
-print('构建')
-originalGATest = originalGA(200, lotNum, lotSizes, machineNum)
-originalGAIITest = originalGAII(200, lotNum, lotSizes, machineNum)
-test = comparisonsOfAlgorithms([originalGATest, originalGAIITest])
+
+# print('构建')
+# originalGATest = originalGA(200, lotNum, lotSizes, machineNum)
+# originalGAIITest = originalGAII(200, lotNum, lotSizes, machineNum)
+# test = comparisonsOfAlgorithms([originalGATest, originalGAIITest])
 
 
 # print('算法各自跑多遍')
@@ -174,11 +193,11 @@ test = comparisonsOfAlgorithms([originalGATest, originalGAIITest])
 # print(' ')
 
 
-test = originalGATest
+# test = originalGATest
 # test = originalGAIITest
-print(type(test))
-for i in range(1):
-    print('outeriter', i)
-    test.iterate(10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, needcalAllMakespan=1, muteEveryIter=1, muteResult=0,
-                 startIter=100, saveDetailsUsingDF=1)
-    print(test.getMakespansOfAllIndividuals())
+# print(type(test))
+# for i in range(500):
+#     print('outeriter', i)
+#     test.iterate(1, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, needcalAllMakespan=1, muteEveryIter=1, muteResult=0,
+#                  startIter=100, saveDetailsUsingDF=1)
+#     print(test.getMakespansOfAllIndividuals())

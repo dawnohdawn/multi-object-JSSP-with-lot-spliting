@@ -1,5 +1,5 @@
 from generalPopulation import generalPopulation
-from generalGAModel import generalGAModel
+# from generalGAModel import generalGAModel
 from globalVariablesAndFunctions import *
 
 class comparisonsOfAlgorithms:
@@ -59,10 +59,12 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetModel()
-                    self.algorithms[algorithmInd].modelIterate(100, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
-                                                               'exchange', 10, \
-                                                               muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
-                                                               muteOuterResult=0, saveDetailsUsingDF=1)
+                    # self.algorithms[algorithmInd].modelIterate(100, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
+                    #                                            'exchange', 10, \
+                    #                                            muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
+                    #                                            muteOuterResult=0, saveDetailsUsingDF=1)
+                    self.algorithms[algorithmInd].modelIterate(2, 2, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter=1,
+                                      muteGAResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
