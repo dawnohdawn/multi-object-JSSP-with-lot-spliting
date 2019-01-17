@@ -173,27 +173,29 @@ class threeIMGAII(generalGAModel):
 
 
 
-# test = threeIMGA(40, lotNum, lotSizes, machineNum)
-test = threeIMGAII(40, lotNum, lotSizes, machineNum)
+# # test = threeIMGA(40, lotNum, lotSizes, machineNum)
+# test = threeIMGAII(40, lotNum, lotSizes, machineNum)
+#
+# for i in range(10):
+#     print('outeriter', i)
+#     test.modelIterate(5, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter = 1,  muteGAResult = 1, \
+#                       muteEveryOuterIter = 0, muteOuterResult = 0, saveDetailsUsingDF = 1)
+#     for item in test.getMakespansOfAllIndividuals():
+#         print(item)
+#     # test.model[0].decodeAFixedIndividual(test.getBestIndividualCodes(), 'gant-outerIter-%d'%i)
 
-for i in range(10):
-    print('outeriter', i)
-    test.modelIterate(5, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter = 1,  muteGAResult = 1, \
-                      muteEveryOuterIter = 0, muteOuterResult = 0, saveDetailsUsingDF = 1)
-    for item in test.getMakespansOfAllIndividuals():
-        print(item)
-    # test.model[0].decodeAFixedIndividual(test.getBestIndividualCodes(), 'gant-outerIter-%d'%i)
 
 
-
-# print('构建')
-# threeIMGATest = threeIMGA(4, lotNum, lotSizes, machineNum)
-# threeIMGAIITest = threeIMGAII(4, lotNum, lotSizes, machineNum)
+print('构建')
+threeIMGATest = threeIMGA(40, lotNum, lotSizes, machineNum)
+threeIMGAIITest = threeIMGAII(40, lotNum, lotSizes, machineNum)
 # test = comparisonsOfAlgorithms([threeIMGATest, threeIMGAIITest])
-# test = comparisonsOfAlgorithms([threeIMGAIITest])
-#
-#
+# test = comparisonsOfAlgorithms([threeIMGATest])
+test = comparisonsOfAlgorithms([threeIMGAIITest])
+
+
+print('A3: threeIMGA（最单纯的）+ 特殊的migration + 额外的邻域搜索')  # 特殊的migration
 # print('算法各自跑多遍')
-# test.runManyTimes(2)
-# print(test.makespans.head())
-# print(' ')
+test.runManyTimes(20)
+print(test.makespans.head())
+print(' ')

@@ -1,4 +1,4 @@
-from generalPopulation import generalPopulation
+# from generalPopulation import generalPopulation
 # from generalGAModel import generalGAModel
 from globalVariablesAndFunctions import *
 
@@ -43,8 +43,10 @@ class comparisonsOfAlgorithms:
             # 开始循环每个算法
             makespansOfThisRun = []
             for algorithmInd in range(self.algorithmNum):
+                print('run:', runInd, str(type(self.algorithms[algorithmInd])))
                 # 注意不同的对象要使用不同的操作
-                if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
+                if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+                # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
@@ -55,7 +57,8 @@ class comparisonsOfAlgorithms:
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
-                elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
+                elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+                # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetModel()
@@ -63,14 +66,17 @@ class comparisonsOfAlgorithms:
                     #                                            'exchange', 10, \
                     #                                            muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
                     #                                            muteOuterResult=0, saveDetailsUsingDF=1)
-                    self.algorithms[algorithmInd].modelIterate(2, 2, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter=1,
+                    self.algorithms[algorithmInd].modelIterate(50, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter=1,
                                       muteGAResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
+
+                print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
+
             self.makespans.loc[len(self.makespans)] = makespansOfThisRun
 
-            print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
+
 
 
     def saveMakespansDF(self, filename):
@@ -90,12 +96,14 @@ class comparisonsOfAlgorithms:
 
         for algorithmInd in range(self.algorithmNum):
 
-            if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
+            if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+            # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
                 self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
                                                       muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
-            elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
+            elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+            # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
                 self.algorithms[algorithmInd].modelIterate(20, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
                                                            10, \
                                                            muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
