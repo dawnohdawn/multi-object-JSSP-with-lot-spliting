@@ -3,6 +3,7 @@ import os
 import copy
 from individualLotSplitingCode import individualLotSplitingCode
 from individualPreferenceCode import individualPreferenceCode
+from generalSolution import generalSolution
 from globalVariablesAndFunctions import *
 PATH = os.path.abspath('.')
 
@@ -105,7 +106,7 @@ class generalIndividual:
     def neighourLastSublotResize(self):
         """
         功能：
-        s1邻域算子
+        s1邻域算子 S1N1
         减小最晚完工的sublot的size
         具体是，随机选取另一个sublot，把最晚完工的sublot减出来的那部分加上去
         """
@@ -128,7 +129,7 @@ class generalIndividual:
     def neighbourLastLotPreferenceAdvance(self):
         """
         功能：
-        s2邻域算子
+        s2邻域算子 S2N1
         最晚完工的lot在随意一个机器上的优先度提前1
         """
         chosenMachineInd = random.randint(0, self.machineNum - 1)
@@ -138,7 +139,7 @@ class generalIndividual:
     def neighbourResizeTwoSublot(self):
         """
         功能：
-        s1邻域算子
+        s1邻域算子  S1N2
         随机选取一个lot，重新配置其中两个sublot的size
         """
         chosenLotInd = random.randint(0, self.lotNum - 1)
@@ -149,7 +150,7 @@ class generalIndividual:
     def neighbourRepositionALot(self):
         """
         功能：
-        s2邻域算子
+        s2邻域算子  S2N2
         随机选取一台机器的一个lot，随机插入到另一个位置
         """
         chosenMachineInd = random.randint(0, self.machineNum - 1)
@@ -167,7 +168,7 @@ class generalIndividual:
     def nerghbourIncreaseOrDecreaseASublotNum(self):
         """
         功能：
-        s1邻域算子
+        s1邻域算子  S1N3
         随机选取一个lot，增加或者减小1个sublot
         """
         # 选一个lot
@@ -201,16 +202,96 @@ class generalIndividual:
                 del self.segment1.lotSplitingCode[chosenLotInd].sublotSizes[chosenSublotInd2]
 
 
-    def neighbourSearch(self, neighbour, steps, searchTimes, solutionClassName):
+    def neighbourSwapTwoLotsOfAMachine(self):
+        """
+        功能：
+        s2邻域算子 S2N3
+        随机选取一台机器，随机选取两个lot号，swap两个基因位
+        """
+        chosenMachineInd = random.randint(0, self.machineNum - 1)
+        chosenLotInd1, chosenLotInd2 = chooseTwoNumByRandom(self.lotNum - 1)
+        self.segment2.swapTwoJobsInsideAvec(chosenMachineInd, chosenLotInd1, chosenLotInd2)
+
+
+    def neighbourInverseLotsOfAMachine(self):
+        """
+        功能：
+        s2邻域算子 S2N4
+        随机选取一台机器，随机选取两个lot号，inverse这两个号之间的所有基因，包括头尾
+        """
+        chosenMachineInd = random.randint(0, self.machineNum - 1)
+        chosenLotInd1, chosenLotInd2 = chooseTwoNumByRandom(self.lotNum - 1)
+        # 要确保chosenLotInd1比chosenLotInd2小
+        if chosenLotInd1 > chosenLotInd2:
+            chosenLotInd1, chosenLotInd2 = chosenLotInd2, chosenLotInd1
+        self.segment2.inverseInsideAVec(chosenMachineInd, chosenLotInd1, chosenLotInd2)
+
+
+    def coarseGrainNeibourS1(self):
+        """
+        功能：
+        s1粗粒度邻域算子
+        随机选取S1的一个vec，检查该个体在coarseGrain表里面的序号，寻找其序号附近的vec替代原vec
+
+        注意：
+        寻找范围为前后10%的vec，四舍五入
+        """
+        chosenLotInd = random.randint(0, self.lotNum - 1)
+        neighbourRnge = round(len(S1ExhaustiveList[chosenLotInd]) * 0.13)  # 计算寻找范围
+        chosenVec = self.segment1.lotSplitingCode[chosenLotInd].sublotSizes
+        chosenVec.sort()  # 排序，才能与S1ExhaustiveList匹配
+
+        # 寻找该个体在S1ExhaustiveList的序号
+        exhaustiveIndex = S1ExhaustiveList[chosenLotInd].index(chosenVec)
+
+        # 选择附近的序号，要确保选的不是原序号
+        chosenNeighbourIndex = (exhaustiveIndex + random.randint(-neighbourRnge, neighbourRnge)) % len(S1ExhaustiveList[chosenLotInd])
+        while chosenNeighbourIndex == exhaustiveIndex:
+            chosenNeighbourIndex = (exhaustiveIndex + random.randint(-neighbourRnge, neighbourRnge)) % len(
+                S1ExhaustiveList[chosenLotInd])
+
+        # 换掉
+        newVec = S1ExhaustiveList[chosenLotInd][chosenNeighbourIndex]
+        self.segment1.lotSplitingCode[chosenLotInd].sublotSizes = newVec
+        self.segment1.lotSplitingCode[chosenLotInd].sublotNum = len(newVec)  # 更新完vec之后，记得更新sublotNum
+
+
+    def coarseGrainNeibourS2(self):
+        """
+        功能：
+        s2粗粒度邻域算子
+        随机选取S2的一个vec，检查该个体在coarseGrain表里面的序号，寻找其序号附近的vec替代原vec
+        """
+        chosenMachineInd = random.randint(0, self.machineNum - 1)
+        neighbourRnge = round(len(S2ExhaustiveList) * 0.13)  # 计算寻找范围
+        chosenVec = self.segment2.preferenceCode[chosenMachineInd]
+
+        # 寻找该个体在S2ExhaustiveList的序号
+        exhaustiveIndex = S2ExhaustiveList.index(chosenVec)
+
+        # 选择附近的序号，要确保选的不是原序号
+        chosenNeighbourIndex = (exhaustiveIndex + random.randint(-neighbourRnge, neighbourRnge)) % len(
+            S2ExhaustiveList)
+        while chosenNeighbourIndex == exhaustiveIndex:
+            chosenNeighbourIndex = (exhaustiveIndex + random.randint(-neighbourRnge, neighbourRnge)) % len(
+                S2ExhaustiveList)
+
+        # 换掉
+        self.segment2.preferenceCode[chosenMachineInd] = S2ExhaustiveList[chosenNeighbourIndex]
+
+
+
+    def neighbourSearch(self, neighbour, steps, searchTimes, solutionClassName, inplace = 1):
         """
         功能：
         对个体进行不同模式的邻域搜索
 
         输入：
-        neighbour           邻域模式，random是随机，s1是针对segment1随机，s2是针对segment2随机，s1n1,s1n2,s1n3,s2n1,s2n2
+        neighbour           邻域模式，random是随机，s1是针对segment1随机，s2是针对segment2随机，s1n1,s1n2,s1n3,s2n1,s2n2,s2n3,s2n4
         steps               由原个体走step步，step步之后才择优
         searchTimes         走多少次完整的step步
         solutionClassName
+        inplace             如果为1，则使用邻域搜索的结果更新该解，如果为0，则不更新该解，不管好坏，输出搜索结果
 
         注意：
         这里有个bug，如果连走好几个step，self.lastLotInd和self.lastSublotInd都要在每一个step后都通过decode算出来
@@ -221,12 +302,22 @@ class generalIndividual:
             # 开始step步的搜索，不需要择优
             for _ in range(steps):
                 # 各种模式预备好
-                if neighbour == 'random':
-                    neighbourType = random.randint(0, 4)
+                if neighbour == 'random':  # 所有上述邻域算子的随机
+                    neighbourType = random.randint(0, 8)
                 elif neighbour == 's1':
                     neighbourType = random.randint(0, 2)
                 elif neighbour == 's2':
+                    neighbourType = random.randint(0, 3)
+                elif neighbour == 'random_simple':  # 这里是没有启发式邻域算子的random
+                    availableType = [1, 2, 4, 5, 6]
+                    neighbour = 'random'
+                    neighbourType = availableType[random.randint(0, 4)]
+                elif neighbour == 'coarse':  # 粗粒度邻域算组随机
                     neighbourType = random.randint(0, 1)
+                elif neighbour == 'fine':  # 细粒度邻域算子随机
+                    availableType = [0, 1, 2, 3, 4, 5, 6]
+                    neighbour = 'random'
+                    neighbourType = availableType[random.randint(0, 6)]
                 # 对该copy动手
                 if neighbour == 's1n1' or neighbour == 'random' and neighbourType == 0 or neighbour == 's1' and neighbourType == 0:
                     searchCopy.decode(solutionClassName)
@@ -240,28 +331,53 @@ class generalIndividual:
                     searchCopy.neighbourLastLotPreferenceAdvance()
                 elif neighbour == 's2n2' or neighbour == 'random' and neighbourType == 4 or neighbour == 's2' and neighbourType == 1:
                     searchCopy.neighbourRepositionALot()
-            # 择优
-            searchCopy.decode(solutionClassName)
-            if searchCopy.makespan <= self.makespan:
-                if neighbour[1] == '1':
-                    self.segment1 = copy.deepcopy(searchCopy.segment1)
-                elif neighbour[1] == '2':
-                    self.segment2 = copy.deepcopy(searchCopy.segment2)
-                self.makespan = copy.deepcopy(searchCopy.makespan)
-                self.lastLotInd = searchCopy.lastLotInd
-                self.lastSublotInd = searchCopy.lastSublotInd
-                # print(self.makespan)
+                elif neighbour == 's2n3' or neighbour == 'random' and neighbourType == 5 or neighbour == 's2' and neighbourType == 2:
+                    searchCopy.neighbourSwapTwoLotsOfAMachine()
+                elif neighbour == 's2n4' or neighbour == 'random' and neighbourType == 6 or neighbour == 's2' and neighbourType == 3:
+                    searchCopy.neighbourInverseLotsOfAMachine()
+                elif neighbour == 's1coarse' or neighbour == 'random' and neighbourType == 7 or neighbour == 'coarse' and neighbourType == 0:
+                    searchCopy.coarseGrainNeibourS1()
+                elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1:
+                    searchCopy.coarseGrainNeibourS2()
+                # 解码
+                searchCopy.decode(solutionClassName)
+                # 择优
+                if inplace == 1:
+                    if searchCopy.makespan <= self.makespan:
+                        if neighbour[1] == '1' or neighbour == 'random' and neighbourType <= 2:
+                            self.segment1 = copy.deepcopy(searchCopy.segment1)
+                        elif neighbour[1] == '2' or neighbour == 'random' and neighbourType >=3:
+                            self.segment2 = copy.deepcopy(searchCopy.segment2)
+                        self.makespan = copy.deepcopy(searchCopy.makespan)
+                        self.lastLotInd = searchCopy.lastLotInd
+                        self.lastSublotInd = searchCopy.lastSublotInd
+                        # print(self.makespan)
+                # 不择优，则输出
+                else:
+                    # print(searchCopy.makespan)
+                    return searchCopy
 
 
 
 
 
+# # 测试单个邻域算子
+# test = generalIndividual(lotNum, lotSizes, machineNum)
+# test.initializeIndividual()
+# # for item in test.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# print(test.segment2.preferenceCode)
+# print('after')
+# # test.neighbourSwapTwoLotsOfAMachine()
+# # test.neighbourInverseLotsOfAMachine()
+# test.coarseGrainNeibourS2()
+# # for item in test.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# print(test.segment2.preferenceCode)
 
 
-# from generalSolution import generalSolution
-# from globalVariablesAndFunctions import *
-#
-#
+
+# # 测试多步邻域算子
 # test = generalIndividual(lotNum, lotSizes, machineNum)
 # test.initializeIndividual()
 # print(test.segment2.preferenceCode)
@@ -279,22 +395,31 @@ class generalIndividual:
 # # list2 = [[4, 1, 4, 3, 1, 1, 3, 3], [1, 19], [3, 2, 3, 4, 4, 4], [12, 8]]
 # # list3 = [[1, 2, 3, 0], [1, 2, 0, 3], [3, 1, 0, 2], [3, 0, 2, 1], [2, 3, 1, 0], [2, 0, 1, 3]]
 #
-# for ind in range(lotNum):
-#     test.segment1.lotSplitingCode[ind].sublotNum = list1[ind]
-#     test.segment1.lotSplitingCode[ind].sublotSizes = list2[ind]
-# test.segment2.preferenceCode = list3
+# # for ind in range(lotNum):
+# #     test.segment1.lotSplitingCode[ind].sublotNum = list1[ind]
+# #     test.segment1.lotSplitingCode[ind].sublotSizes = list2[ind]
+# # test.segment2.preferenceCode = list3
+# # test.decode(generalSolution)
 #
-# test.decode(generalSolution)
 # print(test.makespan)
-# print('--------------')
+# for item in test.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
+# print(test.segment2.preferenceCode)
 #
-# test.neighbourSearch('s2', 3, 10, generalSolution)
-# print(test.makespan)
-#
-# # test.nerghbourIncreaseOrDecreaseASublotNum()
-# # for item in test.segment1.lotSplitingCode:
-# #     print(item.sublotSizes)
+# new = test.neighbourSearch('coarse', 1, 10, generalSolution,inplace = 0)
+# print('after')
+# print(new.makespan)
+# for item in new.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
+# print(new.segment2.preferenceCode)
 
+
+
+
+# test.nerghbourIncreaseOrDecreaseASublotNum()
+# for item in test.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
+#
 # for i in range(20):
 #     test.nerghbourIncreaseOrDecreaseASublotNum()
 #     test.decode(generalSolution)

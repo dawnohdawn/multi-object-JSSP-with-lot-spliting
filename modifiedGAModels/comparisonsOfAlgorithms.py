@@ -50,10 +50,11 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(1000, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
-                                                          needCalAllMakespan=1, \
-                                                          muteEveryIter=1, muteResult=0, startIter=0,
-                                                          saveDetailsUsingDF=1)
+                    # self.algorithms[algorithmInd].iterate(1000, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
+                    #                                       needCalAllMakespan=1, \
+                    #                                       muteEveryIter=1, muteResult=0, startIter=0,
+                    #                                       saveDetailsUsingDF=1)
+                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
@@ -98,8 +99,9 @@ class comparisonsOfAlgorithms:
 
             if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
             # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
-                self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
-                                                      muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+            #     self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
+            #                                           muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                self.algorithms[algorithmInd].iterate(20, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
             elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):

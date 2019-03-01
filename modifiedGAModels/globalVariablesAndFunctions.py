@@ -8,6 +8,8 @@ import gc
 import time
 import matplotlib
 import matplotlib.pyplot as plt
+import itertools
+import math
 PATH = os.path.abspath('.')
 
 
@@ -131,6 +133,14 @@ machineNum = len(set(temp2))
 for i in range(machineNum):
     operationNumOfMachine.append(temp2.count(i))
 
+# 限制每个lot的最大sublotNum
+maxLotNums = []
+for size in lotSizes:
+    if size > 100:
+        maxLotNums.append(2 * int(np.sqrt(100)))
+    else:
+        maxLotNums.append(2 * int(np.sqrt(size)))
+
 # # 打印上述所有参数
 # print('timeMatrix: ')
 # for item in timeMatrix:
@@ -150,6 +160,45 @@ for i in range(machineNum):
 
 
 # 一些全局函数
+
+def combinationSum(candidates, target):
+    """
+    功能：
+    穷举一个lot的所有分批可能
+
+    输入：
+    candidates        可选的sublot siez
+    target            lot size
+
+    输出：
+    一个元素为list的list，例如[[8],
+
+    应用示范：
+    combinationSum([item for item in range(1, lotSize + 1, 1)], lotSize)
+    """
+    candidates, res, stack, lenth = sorted(set(candidates)), [], [(0, [], target)], len(candidates)
+    while stack:
+        i, temp, tar = stack.pop()
+        while i < lenth and tar > 0:
+            if candidates[i] == tar: res += temp + [candidates[i]],
+            stack += (i, temp + [candidates[i]], tar - candidates[i]),
+            i += 1
+    return res
+
+
+# S1粗粒度穷举结果，每个lot都有不同的穷举集，使用时要注意
+S1ExhaustiveList = []
+for i in range(len(maxLotNums)):
+    temp = [item for item in combinationSum([ite for ite in range(1, lotSizes[i] + 1, 1)], lotSizes[i]) if len(item) \
+                             <= maxLotNums[i]]
+    temp.sort()
+    S1ExhaustiveList.append(temp)
+# S2粗粒度穷举结果，每台机器的穷举集是一样的，使用时要注意
+S2ExhaustiveList = [list(item) for item in itertools.permutations([ite for ite in range(0, lotNum , 1)], lotNum)]
+
+# print(S1ExhaustiveList)
+# print(S2ExhaustiveList)
+
 
 def chooseARandomNumberExceptThis(minNum, maxNum, num):
     """

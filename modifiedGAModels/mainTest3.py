@@ -62,7 +62,7 @@ class threeIMGAII(generalGAModel):
 
         return bestIndexs1, bestIndexs2
 
-    def migrationOfAllPops(self, mode, choosePercentage):
+    def migrationOfAllPops_new(self, mode, choosePercentage):
         """
         功能:              所有种群进行迁移
 
@@ -190,8 +190,8 @@ print('构建')
 threeIMGATest = threeIMGA(40, lotNum, lotSizes, machineNum)
 threeIMGAIITest = threeIMGAII(40, lotNum, lotSizes, machineNum)
 # test = comparisonsOfAlgorithms([threeIMGATest, threeIMGAIITest])
-# test = comparisonsOfAlgorithms([threeIMGATest])
-test = comparisonsOfAlgorithms([threeIMGAIITest])
+test = comparisonsOfAlgorithms([threeIMGATest])
+# test = comparisonsOfAlgorithms([threeIMGAIITest])
 
 
 print('A3: threeIMGA（最单纯的）+ 特殊的migration + 额外的邻域搜索')  # 特殊的migration

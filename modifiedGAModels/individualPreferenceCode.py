@@ -90,9 +90,53 @@ class individualPreferenceCode:
         self.insertAJobIntoAPosInsideAVec(vecInd, jobInd, newInd)
 
 
+    def inverseInsideAVec(self, vecInd, lotInd1, lotInd2):
+        """
+        功能：
+        将序号为vecInd的Vec里面，lotInd1到lotInd2之间的所有基因位倒序
 
-# test = individualPreferenceCode(5, 4)
+        输入：
+        vecInd:      改变哪个机器的vec
+        lotInd1:     倒序段的起始基因位
+        lotInd2:     倒序段的结束基因位
+
+        注意：
+        本函数会自动检查lotInd1是否比lotInd2小，如果不是，就调换二者的值
+        在调用本函数之前，需要确保lotInd1不等于lotInd2，否则该函数没效果
+        """
+        # 自动检查lotInd1是否比lotInd2小
+        if lotInd1 > lotInd2:
+            lotInd1, lotInd2 = lotInd2, lotInd1
+        # lotInd1不等于lotInd2才会有inverse
+        elif lotInd1 != lotInd2:
+            self.preferenceCode[vecInd][lotInd1: lotInd2 + 1] = reversed(self.preferenceCode[vecInd][lotInd1: lotInd2 + 1])
+
+
+    def swapTwoJobsInsideAvec(self, vecInd, lotInd1, lotInd2):
+        """
+        功能：
+        将序号为vecInd的Vec里面，lotInd1和lotInd2两个基因交换
+
+        输入：
+        vecInd:      改变哪个机器的vec
+        lotInd1:     待交换位置的基因位1
+        lotInd2:     待交换位置的基因位2
+
+        注意：
+        在调用本函数之前，需要确保lotInd1不等于lotInd2，否则该函数没效果
+        """
+        # lotInd1不等于lotInd2才会有swap
+        if lotInd1 != lotInd2:
+            self.preferenceCode[vecInd][lotInd1], self.preferenceCode[vecInd][lotInd2] = \
+                self.preferenceCode[vecInd][lotInd2], self.preferenceCode[vecInd][lotInd1]
+
+
+
+
+# test = individualPreferenceCode(5, 10)
 # test.initilizePreferenceCode()
 # print(test.preferenceCode)
-# test.insertAJobInsideAVecEarlierOrLaterFewPos(0, 3, -1)
+# # test.insertAJobInsideAVecEarlierOrLaterFewPos(0, 3, -1)
+# test.inverseInsideAVec(0,2,6)
+# # test.swapTwoJobsInsideAvec(0, 0, 9)
 # print(test.preferenceCode)
