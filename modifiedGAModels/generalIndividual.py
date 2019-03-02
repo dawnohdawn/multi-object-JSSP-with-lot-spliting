@@ -71,24 +71,48 @@ class generalIndividual:
         self.segment2.mutateBetweenVecsWithSwap()
 
 
-    def crossoverBetweenSegment1s(indi1, indi2, p):
+    def crossoverBetweenSegment1s(indi1, indi2, p, inplace = 1):
         """
         按概率p选位，交叉两个individual的segment1的位（以一个lot为一位）
+
+        inplace      如果为1，则替换indi1和indi2个体，如果为0，则返回两个子代
         """
-        for i in range(indi1.lotNum):
-            if (random.random() < p):
-                indi1.segment1.lotSplitingCode[i], indi2.segment1.lotSplitingCode[i] = \
-                    indi2.segment1.lotSplitingCode[i], indi1.segment1.lotSplitingCode[i]
+        # 如果要替换
+        if inplace == 1:
+            for i in range(indi1.lotNum):
+                if random.random() < p:
+                    indi1.segment1.lotSplitingCode[i], indi2.segment1.lotSplitingCode[i] = \
+                        indi2.segment1.lotSplitingCode[i], indi1.segment1.lotSplitingCode[i]
+        # 如果不用替换，则返回两个子代
+        else:
+            indi1Copy = copy.deepcopy(indi1)
+            indi2Copy = copy.deepcopy(indi2)
+            for i in range(indi1Copy.lotNum):
+                if random.random() < p:
+                    indi1Copy.segment1.lotSplitingCode[i], indi2Copy.segment1.lotSplitingCode[i] = \
+                        indi2Copy.segment1.lotSplitingCode[i], indi1Copy.segment1.lotSplitingCode[i]
+            return indi1Copy, indi2Copy
 
 
-    def crossoverBetweenSegment2s(indi1, indi2, p):
+    def crossoverBetweenSegment2s(indi1, indi2, p, inplace = 1):
         """
         按概率p选位，交叉两个individual的segment2的位（以一台机器为一位）
         """
-        for i in range(indi1.machineNum):
-            if (random.random() < p):
-                indi1.segment2.preferenceCode[i], indi2.segment2.preferenceCode[i] = \
-                    indi2.segment2.preferenceCode[i], indi1.segment2.preferenceCode[i]
+        # 如果需要替换
+        if inplace == 1:
+            for i in range(indi1.machineNum):
+                if (random.random() < p):
+                    indi1.segment2.preferenceCode[i], indi2.segment2.preferenceCode[i] = \
+                        indi2.segment2.preferenceCode[i], indi1.segment2.preferenceCode[i]
+        # 如果不需要替换，则返回两个子代
+        else:
+            indi1Copy = copy.deepcopy(indi1)
+            indi2Copy = copy.deepcopy(indi2)
+            for i in range(indi1Copy.machineNum):
+                indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
+                    indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
+            return indi1Copy, indi2Copy
+
 
 
     def decode(self, solutionClassName):
@@ -179,7 +203,7 @@ class generalIndividual:
         sublotSizes = self.segment1.lotSplitingCode[chosenLotInd].sublotSizes
         # 如果是增加一个sublot
         if increaseFlag:
-            if sublotNum < lotSize:
+            if sublotNum < lotSize and sublotNum < maxLotNums[chosenLotInd]:  # 要保证当前sublotNum不能到达最大Num数
                 # 选一个sublotSize非1的sublot
                 chosenSublotInd = random.randint(0, sublotNum - 1)
                 while sublotSizes[chosenSublotInd] == 1:
@@ -322,23 +346,32 @@ class generalIndividual:
                 if neighbour == 's1n1' or neighbour == 'random' and neighbourType == 0 or neighbour == 's1' and neighbourType == 0:
                     searchCopy.decode(solutionClassName)
                     searchCopy.neighourLastSublotResize()
+                    neighbour = 's1n1'
                 elif neighbour == 's1n2' or neighbour == 'random' and neighbourType == 1 or neighbour == 's1' and neighbourType == 1:
                     searchCopy.neighbourResizeTwoSublot()
+                    neighbour = 's1n2'
                 elif neighbour == 's1n3' or neighbour == 'random' and neighbourType == 2 or neighbour == 's1' and neighbourType == 2:
                     searchCopy.nerghbourIncreaseOrDecreaseASublotNum()
+                    neighbour = 's1n3'
                 elif neighbour == 's2n1' or neighbour == 'random' and neighbourType == 3 or neighbour == 's2' and neighbourType == 0:
                     searchCopy.decode(solutionClassName)
                     searchCopy.neighbourLastLotPreferenceAdvance()
+                    neighbour = 's2n1'
                 elif neighbour == 's2n2' or neighbour == 'random' and neighbourType == 4 or neighbour == 's2' and neighbourType == 1:
                     searchCopy.neighbourRepositionALot()
+                    neighbour = 's2n2'
                 elif neighbour == 's2n3' or neighbour == 'random' and neighbourType == 5 or neighbour == 's2' and neighbourType == 2:
                     searchCopy.neighbourSwapTwoLotsOfAMachine()
+                    neighbour = 's2n3'
                 elif neighbour == 's2n4' or neighbour == 'random' and neighbourType == 6 or neighbour == 's2' and neighbourType == 3:
                     searchCopy.neighbourInverseLotsOfAMachine()
+                    neighbour = 's2n4'
                 elif neighbour == 's1coarse' or neighbour == 'random' and neighbourType == 7 or neighbour == 'coarse' and neighbourType == 0:
                     searchCopy.coarseGrainNeibourS1()
+                    neighbour = 's1coarse'
                 elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1:
                     searchCopy.coarseGrainNeibourS2()
+                    neighbour = 's2coarse'
                 # 解码
                 searchCopy.decode(solutionClassName)
                 # 择优
@@ -355,25 +388,39 @@ class generalIndividual:
                 # 不择优，则输出
                 else:
                     # print(searchCopy.makespan)
+                    # 记录成功了的邻域算子
+                    if searchCopy.makespan < self.makespan:
+                        neighbourCounts[neighbour] += 1
                     return searchCopy
 
 
 
 
 
-# # 测试单个邻域算子
+# 测试单个邻域算子
 # test = generalIndividual(lotNum, lotSizes, machineNum)
 # test.initializeIndividual()
+# test2 = generalIndividual(lotNum, lotSizes, machineNum)
+# test2.initializeIndividual()
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
+# # for item in test2.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
+# print(test2.segment2.preferenceCode)
 # print('after')
 # # test.neighbourSwapTwoLotsOfAMachine()
 # # test.neighbourInverseLotsOfAMachine()
-# test.coarseGrainNeibourS2()
+# # test.coarseGrainNeibourS2()
+# test3, test4 = test.crossoverBetweenSegment2s(test2, 0.5, inplace = 0)
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
+# print(test2.segment2.preferenceCode)
+# # for item in test3.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # for item in test4.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
 
 
 
@@ -406,7 +453,7 @@ class generalIndividual:
 #     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
 #
-# new = test.neighbourSearch('coarse', 1, 10, generalSolution,inplace = 0)
+# new = test.neighbourSearch('s1coarse', 1, 10, generalSolution,inplace = 0)
 # print('after')
 # print(new.makespan)
 # for item in new.segment1.lotSplitingCode:

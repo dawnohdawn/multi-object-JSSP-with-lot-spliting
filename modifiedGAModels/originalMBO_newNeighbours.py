@@ -5,7 +5,7 @@ from globalVariablesAndFunctions import *
 
 
 # 构建原始单种群GA类：originalGA
-class originalMBO(generalPopulation):
+class originalMBO_newNeighbours(generalPopulation):
     """
     继承generalPopulation得到
     """
@@ -14,7 +14,7 @@ class originalMBO(generalPopulation):
         """
         指定了individual类是generalIndividual，solution类是generalSolution
         """
-        super(originalMBO, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
+        super(originalMBO_newNeighbours, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
 
 
     def iterate(self, iterNum, K, S, M, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
@@ -78,7 +78,7 @@ class originalMBO(generalPopulation):
                 leaderNeiMakespan = []
                 # 先生成K个邻域解
                 for _ in range(K):
-                    tempBird = self.pop[leaderInd].neighbourSearch('random_simple', 1, 1, self.solutionClassName, inplace = 0)
+                    tempBird = self.pop[leaderInd].neighbourSearch('random', 1, 1, self.solutionClassName, inplace = 0)
                     leaderNei.append(tempBird)
                     leaderNeiMakespan.append(tempBird.makespan)
                 # 选出最好的邻域解，与领头鸟择优
@@ -102,7 +102,7 @@ class originalMBO(generalPopulation):
                             wingNeiMakespan = [leaderNeiMakespan[i] for i in bestAheadInd]
                         # 生成该鸟的邻域解，加入邻域集
                         for _ in range(K - S):
-                            tempBird = self.pop[birdInd].neighbourSearch('random_simple', 1, 1, self.solutionClassName, inplace = 0)
+                            tempBird = self.pop[birdInd].neighbourSearch('random', 1, 1, self.solutionClassName, inplace = 0)
                             wingNei.append(tempBird)
                             wingNeiMakespan.append(tempBird.makespan)
                         # 选出最好的邻域解，与该鸟择优
@@ -163,4 +163,8 @@ class originalMBO(generalPopulation):
 
 
 
+# test = originalMBO_newNeighbours(51, lotNum, lotSizes, machineNum)
+# test.iterate_MBO(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
 
+# test.getBestIndividualCodes()
+# test.getMakespansOfAllIndividuals()

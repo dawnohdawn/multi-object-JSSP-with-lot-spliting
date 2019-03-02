@@ -101,19 +101,22 @@ class comparisonsOfAlgorithms:
             # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
             #     self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
             #                                           muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
-                self.algorithms[algorithmInd].iterate(20, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
             elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
             # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
-                self.algorithms[algorithmInd].modelIterate(20, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
+                self.algorithms[algorithmInd].modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
                                                            10, \
                                                            muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
                                                            muteOuterResult=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
                     "bestMakespan"]
-
+        # 存储收敛图像
         self.oneRunData.plot()
-        plt.savefig(PATH + "\\" + fileName, dpi=160)
+        plt.savefig(PATH + "\\convergeData\\" + fileName + '.png', dpi=160)
         plt.show()
         print('figure saved as %s !' % fileName)
+        # 存储收敛数据
+        self.oneRunData.to_csv(PATH + "\\convergeData\\" + fileName + '.csv', header=True)
+        print('data saved as %s !' % fileName)

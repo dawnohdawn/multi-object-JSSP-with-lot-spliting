@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 2
+problemInd = 3
 
 """ 
 problemInd               问题编号，需要手动指定
@@ -141,6 +141,9 @@ for size in lotSizes:
     else:
         maxLotNums.append(2 * int(np.sqrt(size)))
 
+# 记录每个邻域算子成功次数的字典
+neighbourCounts = {'s1n1': 0, 's1n2': 0, 's1n3': 0, 's2n1': 0, 's2n2': 0, 's2n3': 0, 's2n4': 0, 's1coarse': 0, 's2coarse': 0}
+
 # # 打印上述所有参数
 # print('timeMatrix: ')
 # for item in timeMatrix:
@@ -161,7 +164,45 @@ for size in lotSizes:
 
 # 一些全局函数
 
-def combinationSum(candidates, target):
+def disturbList(lst, disturbNum, maxGap):
+    """
+    功能：
+    把输入的列表lst稍微打乱
+
+    输入：
+    lst           输入的列表
+    disturbNum    打乱的次数，每次打乱都是近距离的swap
+    maxGap        swap的两点最远的距离
+
+    输出：
+    templst       打乱后的列表
+
+    注意：
+    本函数对于输入列表不做改动，是在输入列表的副本上改动
+    """
+    templst = copy.deepcopy(lst)
+    for i in range(disturbNum):
+        # 随机选择一个位置
+        pos1 = random.randint(0, len(templst))
+        # 找到该位置前后disturbNum个位置的范围
+        if pos1 - maxGap >= 0:
+            leftBound = (pos1 - maxGap)
+        else:
+            leftBound = 0
+        if pos1 + maxGap <= len(templst) - 1:
+            rightBound = pos1 + maxGap
+        else:
+            rightBound = len(templst) - 1
+        # 随机选择上述范围内与pos1不同的另一个位置
+        pos2 = random.randint(leftBound, rightBound)
+        # swap
+        while pos2 == pos1:
+            pos2 = random.randint(leftBound, rightBound)
+        templst[pos1], templst[pos2] = templst[pos2], templst[pos1]
+    return templst
+
+
+class Solution:
     """
     功能：
     穷举一个lot的所有分批可能
@@ -174,23 +215,30 @@ def combinationSum(candidates, target):
     一个元素为list的list，例如[[8],
 
     应用示范：
-    combinationSum([item for item in range(1, lotSize + 1, 1)], lotSize)
+    test=Solution()
+    test.combinationSum(list(range(1, 21)),20)
     """
-    candidates, res, stack, lenth = sorted(set(candidates)), [], [(0, [], target)], len(candidates)
-    while stack:
-        i, temp, tar = stack.pop()
-        while i < lenth and tar > 0:
-            if candidates[i] == tar: res += temp + [candidates[i]],
-            stack += (i, temp + [candidates[i]], tar - candidates[i]),
-            i += 1
-    return res
+    def DFS(self, candidates, target, start, valuelist):
+        length = len(candidates)
+        if target == 0:
+            return Solution.ret.append(valuelist)
+        for i in range(start, length):
+            if target < candidates[i]:
+                return
+            self.DFS(candidates, target - candidates[i], i, valuelist + [candidates[i]])
+
+    def combinationSum(self, candidates, target):
+        candidates.sort()
+        Solution.ret = []
+        self.DFS(candidates, target, 0, [])
+        return Solution.ret
 
 
 # S1粗粒度穷举结果，每个lot都有不同的穷举集，使用时要注意
 S1ExhaustiveList = []
 for i in range(len(maxLotNums)):
-    temp = [item for item in combinationSum([ite for ite in range(1, lotSizes[i] + 1, 1)], lotSizes[i]) if len(item) \
-                             <= maxLotNums[i]]
+    exhaust = Solution()
+    temp = [item for item in exhaust.combinationSum(list(range(1, lotSizes[i] + 1)), lotSizes[i]) if len(item) <= maxLotNums[i]]
     temp.sort()
     S1ExhaustiveList.append(temp)
 # S2粗粒度穷举结果，每台机器的穷举集是一样的，使用时要注意
