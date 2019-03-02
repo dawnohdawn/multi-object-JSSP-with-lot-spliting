@@ -16,8 +16,11 @@ class myMBO1(generalPopulation):
         """
         super(myMBO1, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
 
+        self.name = 'myMBO1'
 
-    def iterate(self, iterNum, K, S, M, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
+
+
+    def iterate(self, iterNum, K, S, M, A, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
         """
         功能：              简单GA迭代，可对同一个population对象连续使用
                             首次使用应把needcalAllMakespan设为1，后面应设为0以减少重复计算
@@ -27,6 +30,7 @@ class myMBO1(generalPopulation):
         K                   the number of neighbor solutions to be considered
         S                   the number of neighbor solutions to be shared with the next solution
         M                   number of tours
+        A                   调整队形阶段的迭代次数
         needcalAllMakespan  在循环迭代之前是否需要计算全部个体的makespan，默认为1
         muteEveryIter       如果为0，打印每次迭代种群中最好makespan
         muteResult          如果为0，打印迭代结束后最好makespan
@@ -38,6 +42,30 @@ class myMBO1(generalPopulation):
         注意：
         MBO的popsize一定要设为奇数
         """
+
+        def fuzzyVReshape():
+            """
+            功能：
+            对pop所有鸟进行模糊排序，构建V字形的领头鸟，左右翼跟随鸟
+
+            输出：
+            领头鸟号
+            左翼跟随鸟序号,list
+            右翼跟随鸟序号,list
+            """
+            # 生成被打乱的排序
+            indexMakespanDict =dict(zip(list(range(self.popSize)), self.getMakespansOfAllIndividuals()))
+            sortedIndex = [item[0] for item in sorted(indexMakespanDict.items(), key=lambda x: x[1], reverse=False)]
+            disturbedIndex = disturbList(sortedIndex, int(self.popSize * 0.15), int(self.popSize * 0.1))
+            # 安排领头鸟，左右翼跟随鸟
+            leaderind = disturbedIndex[0]
+            del disturbedIndex[0]
+            leftWingind = [disturbedIndex[i] for i in range(self.popSize -1) if i % 2 == 0]
+            rightWingind = [disturbedIndex[i] for i in range(self.popSize -1) if i % 2 == 1]
+
+            return leaderind, leftWingind, rightWingind
+
+
         progress = [0 for _ in range(iterNum)]
 
         # 第一代在此计算所有individual的makespan
@@ -47,19 +75,11 @@ class myMBO1(generalPopulation):
         # 每次执行iterate都要清空这个DF
         self.details = pd.DataFrame(columns=['iter', 'bestMakespan'])
 
-        # 构建V字队形
-        leaderInd = random.randint(0, self.popSize - 1)  # 领头鸟
-        leftWingInd = []  # 左翼序号
-        rightWingInd = []  # 右翼序号
-        followerInd = list(range(self.popSize))  # 左右翼可选的序号
-        followerInd.remove(leaderInd)
-        random.shuffle(followerInd)
-        for i in range(int(len(followerInd) / 2)):
-            leftWingInd.append(followerInd[2 * i])
-            rightWingInd.append(followerInd[2 * i + 1])
+        # 构建模糊V字队形
+        leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
 
         # for intervalInd in range(intervalNum):
-        for intervalInd in range(int (iterNum / M)):
+        for intervalInd in range(int (iterNum / (M + A))):
             # 一轮interval开始，一轮interval包含iterNum个iter
 
             # 先针对当前队形进行iterInd次的更新
@@ -67,7 +87,7 @@ class myMBO1(generalPopulation):
                 # 一次iter开始
 
                 #重新计算iterNum
-                iterInd = intervalInd * M + m
+                iterInd = intervalInd * (M + A) + m
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
                 newPop = copy.deepcopy(self.pop)
@@ -87,19 +107,31 @@ class myMBO1(generalPopulation):
                     bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
                     bestNei = leaderNei[bestNeiInd]
                     newPop[leaderInd] = copy.deepcopy(bestNei)
-                    # 删除替换的鸟，更新领头鸟邻域集以备跟随鸟使用
-                    del leaderNei[bestNeiInd]
-                    del leaderNeiMakespan[bestNeiInd]
 
                 # 左右翼跟随鸟更新
                 for wingInd in [leftWingInd, rightWingInd]:
-                    for birdInd in wingInd:
-                        # 如果是第一只跟随鸟，就从领头鸟那里获得邻域解
-                        if birdInd == wingInd[0]:
-                            # 初始化跟随鸟邻域集，找出领头鸟最好的S个邻域解，加入邻域集
-                            bestAheadInd = getBestOrWorstIndexs('best', leaderNeiMakespan, S)
-                            wingNei = [leaderNei[i] for i in bestAheadInd]
-                            wingNeiMakespan = [leaderNeiMakespan[i] for i in bestAheadInd]
+                    for indOfWingInd, birdInd in enumerate(wingInd):
+                        # 先清空每一只鸟的邻域集
+                        wingNei = []
+                        wingNeiMakespan = []
+                        # 确定要向哪一只鸟学习
+                        if birdInd == wingInd[0]:  # 如果是第一只跟随鸟，就跟领头鸟交叉
+                            learnedBird = self.pop[leaderInd]
+                        else:  # 如果不是领头鸟，则跟前一只鸟交叉
+                            learnedBird = self.pop[wingInd[indOfWingInd - 1]]
+                        # 交叉S次，分别挑最好的解加入邻域集
+                        for _ in range(S):
+                            # 交叉得到两个子代
+                            child1, child2 = self.pop[birdInd].crossoverBetweenBothSegments(learnedBird, 0.5, 0.5, inplace = 0)
+                            children = [child1, child2]
+                            # 计算完工时间
+                            for item in children:
+                                item.decode(self.solutionClassName)
+                            childrenMakespan = [item.makespan for item in children]
+                            # 选择较好的一个子代，放入邻域集
+                            chosenChild = children[childrenMakespan.index(min(childrenMakespan))]
+                            wingNei.append(chosenChild)
+                            wingNeiMakespan.append(chosenChild.makespan)
                         # 生成该鸟的邻域解，加入邻域集
                         for _ in range(K - S):
                             tempBird = self.pop[birdInd].neighbourSearch('random', 1, 1, self.solutionClassName, inplace = 0)
@@ -111,13 +143,6 @@ class myMBO1(generalPopulation):
                             bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
                             bestNei = wingNei[bestNeiInd]
                             newPop[birdInd] = copy.deepcopy(bestNei)
-                            # 删除替换的鸟，更新邻域集以备下一只鸟使用
-                            del wingNei[bestNeiInd]
-                            del wingNeiMakespan[bestNeiInd]
-                            # 将邻域解最好的S个解保留，其他删掉
-                            bestAheadInd = getBestOrWorstIndexs('best', wingNeiMakespan, S)
-                            wingNei = [i for j, i in enumerate(wingNei) if j in bestAheadInd]
-                            wingNeiMakespan = [i for j, i in enumerate(wingNeiMakespan) if j in bestAheadInd]
 
                 # 一个iter完成，将生成好的newPop深复制给pop
                 self.pop = copy.deepcopy(newPop)
@@ -143,15 +168,60 @@ class myMBO1(generalPopulation):
                         #         if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
                         #             self.details.set_index(["iter"], inplace=True)
 
+            # 队形调整阶段
+            for a in range(A):
+                # 一次iter开始
+
+                # 重新计算iterNum
+                iterInd = intervalInd * (M + A) + M + a
+
+                # 先把整个种群deepcopy到newPop中，在newPop上操作
+                newPop = copy.deepcopy(self.pop)
+
+                # 更新每一只鸟
+                for birdInd in range(self.popSize):
+                    # 先清空每一只鸟的邻域集
+                    wingNei = []
+                    wingNeiMakespan = []
+                    # 确定要向哪一只鸟学习，随机选择
+                    learnedBird = self.pop[random.randint(0, self.popSize - 1)]
+                    # 交叉S次，分别挑最好的解加入邻域集
+                    for _ in range(S):
+                        # 交叉得到两个子代
+                        child1, child2 = self.pop[birdInd].crossoverBetweenBothSegments(learnedBird, 0.5, 0.5, inplace=0)
+                        children = [child1, child2]
+                        # 计算完工时间
+                        for item in children:
+                            item.decode(self.solutionClassName)
+                        childrenMakespan = [item.makespan for item in children]
+                        # 选择较好的一个子代，放入邻域集
+                        chosenChild = children[childrenMakespan.index(min(childrenMakespan))]
+                        wingNei.append(chosenChild)
+                        wingNeiMakespan.append(chosenChild.makespan)
+                    # 生成该鸟的邻域解，加入邻域集
+                    for _ in range(K - S):
+                        tempBird = self.pop[birdInd].neighbourSearch('random', 1, 1, self.solutionClassName, inplace=0)
+                        wingNei.append(tempBird)
+                        wingNeiMakespan.append(tempBird.makespan)
+                    # 选出最好的邻域解，与该鸟择优
+                    if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                        # 替换该鸟
+                        bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                        bestNei = wingNei[bestNeiInd]
+                        newPop[birdInd] = copy.deepcopy(bestNei)
+
+            # 变换队形，重新构建模糊V字队形
+            leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+
             # 变换队形，把领头鸟退到队尾
-            if newPop[leftWingInd[0]].makespan < newPop[rightWingInd[0]].makespan:
-                leftWingInd.append(leaderInd)
-                leaderInd = leftWingInd[0]
-                del leftWingInd[0]
-            else:
-                rightWingInd.append(leaderInd)
-                leaderInd = rightWingInd[0]
-                del rightWingInd[0]
+            # if newPop[leftWingInd[0]].makespan < newPop[rightWingInd[0]].makespan:
+            #     leftWingInd.append(leaderInd)
+            #     leaderInd = leftWingInd[0]
+            #     del leftWingInd[0]
+            # else:
+            #     rightWingInd.append(leaderInd)
+            #     leaderInd = rightWingInd[0]
+            #     del rightWingInd[0]
 
         if muteResult == 0:
             print('result after %d iterations:' % iterNum, self.getBestMakespan())
@@ -163,8 +233,8 @@ class myMBO1(generalPopulation):
 
 
 
-# test = originalMBO_newNeighbours(51, lotNum, lotSizes, machineNum)
-# test.iterate_MBO(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+# test = myMBO1(51, lotNum, lotSizes, machineNum)
+# test.iterate(30, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
 
 # test.getBestIndividualCodes()
 # test.getMakespansOfAllIndividuals()

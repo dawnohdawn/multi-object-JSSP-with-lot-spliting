@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 3
+problemInd = 1
 
 """ 
 problemInd               问题编号，需要手动指定
@@ -183,7 +183,7 @@ def disturbList(lst, disturbNum, maxGap):
     templst = copy.deepcopy(lst)
     for i in range(disturbNum):
         # 随机选择一个位置
-        pos1 = random.randint(0, len(templst))
+        pos1 = random.randint(0, len(templst) - 1)
         # 找到该位置前后disturbNum个位置的范围
         if pos1 - maxGap >= 0:
             leftBound = (pos1 - maxGap)
@@ -198,6 +198,8 @@ def disturbList(lst, disturbNum, maxGap):
         # swap
         while pos2 == pos1:
             pos2 = random.randint(leftBound, rightBound)
+        # print(pos1, pos2)
+        # 交换位置
         templst[pos1], templst[pos2] = templst[pos2], templst[pos1]
     return templst
 

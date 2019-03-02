@@ -29,6 +29,7 @@ class comparisonsOfAlgorithms:
         # 构建一个dataframe，记录单次运行的收敛过程
         self.oneRunData = pd.DataFrame(columns=self.columnNames)
 
+
     def runManyTimes(self, runNum, restart=1):
         """
         功能：        传入的多个算法，跑runNum遍
@@ -43,39 +44,32 @@ class comparisonsOfAlgorithms:
             # 开始循环每个算法
             makespansOfThisRun = []
             for algorithmInd in range(self.algorithmNum):
-                print('run:', runInd, str(type(self.algorithms[algorithmInd])))
+                print('run:', runInd, self.algorithms[algorithmInd].name)
                 # 注意不同的对象要使用不同的操作
-                if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
-                # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
+                if self.algorithms[algorithmInd].name.startswith('original'):
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    # self.algorithms[algorithmInd].iterate(1000, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
-                    #                                       needCalAllMakespan=1, \
-                    #                                       muteEveryIter=1, muteResult=0, startIter=0,
-                    #                                       saveDetailsUsingDF=1)
-                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                    self.algorithms[algorithmInd].iterate(30, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, \
+                                                          muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
-                elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
-                # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
+                elif self.algorithms[algorithmInd].name.startswith('my'):
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
-                        self.algorithms[algorithmInd].resetModel()
-                    # self.algorithms[algorithmInd].modelIterate(100, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3,
-                    #                                            'exchange', 10, \
-                    #                                            muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
-                    #                                            muteOuterResult=0, saveDetailsUsingDF=1)
-                    self.algorithms[algorithmInd].modelIterate(50, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', 10, muteEveryGAIter=1,
-                                      muteGAResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
-                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
-                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
-                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
+                        self.algorithms[algorithmInd].resetPop()
+                    self.algorithms[algorithmInd].iterate(30, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
+                                                      muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
+                                       self.algorithms[algorithmInd].getBestIndividualCodes()])
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
 
             self.makespans.loc[len(self.makespans)] = makespansOfThisRun
+
+
 
 
 
@@ -97,19 +91,25 @@ class comparisonsOfAlgorithms:
 
         for algorithmInd in range(self.algorithmNum):
 
-            if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+
+            if self.algorithms[algorithmInd].name.startswith('originalMBO'):
+            # if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
             # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
             #     self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
             #                                           muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
-                self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
+                                                      startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
-            elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
+            elif self.algorithms[algorithmInd].name.startswith('myMBO'):
+            # elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
             # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
-                self.algorithms[algorithmInd].modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
-                                                           10, \
-                                                           muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
-                                                           muteOuterResult=0, saveDetailsUsingDF=1)
+                self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
+                                                  startIter=0, saveDetailsUsingDF=1)
+            #     self.algorithms[algorithmInd].modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
+            #                                                10, \
+            #                                                muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
+            #                                                muteOuterResult=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
                     "bestMakespan"]
         # 存储收敛图像

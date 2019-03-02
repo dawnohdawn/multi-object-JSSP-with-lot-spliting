@@ -97,6 +97,8 @@ class generalIndividual:
     def crossoverBetweenSegment2s(indi1, indi2, p, inplace = 1):
         """
         按概率p选位，交叉两个individual的segment2的位（以一台机器为一位）
+
+        inplace      如果为01，则替换indi1和indi2个体，如果为0，则返回两个子代
         """
         # 如果需要替换
         if inplace == 1:
@@ -109,10 +111,53 @@ class generalIndividual:
             indi1Copy = copy.deepcopy(indi1)
             indi2Copy = copy.deepcopy(indi2)
             for i in range(indi1Copy.machineNum):
-                indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
-                    indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
+                if random.random() < p:
+                    indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
+                        indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
             return indi1Copy, indi2Copy
 
+
+    def crossoverBetweenBothSegments(indi1, indi2, p1, p2, inplace = 1):
+        """
+        功能：
+        同时对s1和s2交叉
+
+        输入：
+        indi2       第二个父代
+        p1          s1交叉的选位概率
+        p2          s2交叉的选位概率
+        inplace     如果为1，则替换indi1和indi2个体，如果为0，则返回两个子代
+
+        输出：
+        如果inplace为0，则返回两个子代
+        """
+        # 如果要替换
+        if inplace == 1:
+            #交叉s1
+            for i in range(indi1.lotNum):
+                if random.random() < p1:
+                    indi1.segment1.lotSplitingCode[i], indi2.segment1.lotSplitingCode[i] = \
+                        indi2.segment1.lotSplitingCode[i], indi1.segment1.lotSplitingCode[i]
+            # 交叉s2
+            for i in range(indi1.machineNum):
+                if random.random() < p2:
+                    indi1.segment2.preferenceCode[i], indi2.segment2.preferenceCode[i] = \
+                        indi2.segment2.preferenceCode[i], indi1.segment2.preferenceCode[i]
+        # 如果不需要替换
+        else:
+            indi1Copy = copy.deepcopy(indi1)
+            indi2Copy = copy.deepcopy(indi2)
+            # 交叉s1
+            for i in range(indi1Copy.lotNum):
+                if random.random() < p1:
+                    indi1Copy.segment1.lotSplitingCode[i], indi2Copy.segment1.lotSplitingCode[i] = \
+                        indi2Copy.segment1.lotSplitingCode[i], indi1Copy.segment1.lotSplitingCode[i]
+            # 交叉s2
+            for i in range(indi1Copy.machineNum):
+                if random.random() < p2:
+                    indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
+                        indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
+            return indi1Copy, indi2Copy
 
 
     def decode(self, solutionClassName):
@@ -397,30 +442,40 @@ class generalIndividual:
 
 
 
-# 测试单个邻域算子
+# # 测试单个邻域算子
 # test = generalIndividual(lotNum, lotSizes, machineNum)
 # test.initializeIndividual()
 # test2 = generalIndividual(lotNum, lotSizes, machineNum)
 # test2.initializeIndividual()
-# # for item in test.segment1.lotSplitingCode:
-# #     print(item.sublotSizes)
-# # for item in test2.segment1.lotSplitingCode:
-# #     print(item.sublotSizes)
+#
+# print('parent1')
+# for item in test.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
+#
+# print('parent2')
+# for item in test2.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
 # print(test2.segment2.preferenceCode)
+#
 # print('after')
 # # test.neighbourSwapTwoLotsOfAMachine()
 # # test.neighbourInverseLotsOfAMachine()
 # # test.coarseGrainNeibourS2()
+# # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
 # test3, test4 = test.crossoverBetweenSegment2s(test2, 0.5, inplace = 0)
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
-# print(test.segment2.preferenceCode)
-# print(test2.segment2.preferenceCode)
-# # for item in test3.segment1.lotSplitingCode:
-# #     print(item.sublotSizes)
-# # for item in test4.segment1.lotSplitingCode:
-# #     print(item.sublotSizes)
+#
+# print('child1')
+# print(test3.segment2.preferenceCode)
+# for item in test3.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
+#
+# print('child2')
+# print(test4.segment2.preferenceCode)
+# for item in test4.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
 
 
 

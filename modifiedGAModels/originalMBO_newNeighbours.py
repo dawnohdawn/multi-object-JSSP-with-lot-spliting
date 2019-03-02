@@ -16,6 +16,8 @@ class originalMBO_newNeighbours(generalPopulation):
         """
         super(originalMBO_newNeighbours, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
 
+        self.name = 'originalMBO_newNeighbours'
+
 
     def iterate(self, iterNum, K, S, M, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
         """
@@ -164,7 +166,7 @@ class originalMBO_newNeighbours(generalPopulation):
 
 
 # test = originalMBO_newNeighbours(51, lotNum, lotSizes, machineNum)
-# test.iterate_MBO(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
+# test.iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1)
 
 # test.getBestIndividualCodes()
 # test.getMakespansOfAllIndividuals()
