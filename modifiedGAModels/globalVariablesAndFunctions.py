@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 2
+problemInd = 1
 
 """ 
 problemInd               问题编号，需要手动指定

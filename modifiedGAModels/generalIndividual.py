@@ -40,6 +40,27 @@ class generalIndividual:
         self.lastSublotInd = -1
 
 
+    def returnBestNewIndividuals(self, n, solutionClassName):
+        """
+        功能：
+        随机初始化几个新个体，返回最优个体
+
+        输入：
+        n                   随机初始化n个新个体
+        solutionClassName   solution类名字
+        """
+        individualList = []
+        individualListMakespan = []
+        for i in range(n):
+            newIndividual = generalIndividual(self.lotNum, self.lotSizes, self.machineNum)
+            newIndividual.initializeIndividual()
+            newIndividual.decode(solutionClassName)
+            individualList.append(newIndividual)
+            individualListMakespan.append(newIndividual.makespan)
+        return individualList[individualListMakespan.index(min(individualListMakespan))]
+
+
+
     def mutateSegment1WithTwoSublots(self, p):
         """
         按照概率p随机选择lotSplitingVec，对其随机两个sublot的size扰动
@@ -391,6 +412,9 @@ class generalIndividual:
         注意：
         这里有个bug，如果连走好几个step，self.lastLotInd和self.lastSublotInd都要在每一个step后都通过decode算出来
         """
+        individualList = []
+        individualMakespanList = []
+
         for _ in range(searchTimes):
             # 深copy
             searchCopy = copy.deepcopy(self)
@@ -443,26 +467,30 @@ class generalIndividual:
                 elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1:
                     searchCopy.coarseGrainNeibourS2()
                     neighbour = 's2coarse'
-                # 解码
-                searchCopy.decode(solutionClassName)
-                # 择优
-                if inplace == 1:
-                    if searchCopy.makespan <= self.makespan:
-                        if neighbour[1] == '1' or neighbour == 'random' and neighbourType <= 2:
-                            self.segment1 = copy.deepcopy(searchCopy.segment1)
-                        elif neighbour[1] == '2' or neighbour == 'random' and neighbourType >=3:
-                            self.segment2 = copy.deepcopy(searchCopy.segment2)
-                        self.makespan = copy.deepcopy(searchCopy.makespan)
-                        self.lastLotInd = searchCopy.lastLotInd
-                        self.lastSublotInd = searchCopy.lastSublotInd
-                        # print(self.makespan)
-                # 不择优，则输出
-                else:
-                    # print(searchCopy.makespan)
-                    # 记录成功了的邻域算子
-                    if searchCopy.makespan < self.makespan:
-                        neighbourCounts[neighbour] += 1
-                    return searchCopy
+            # 解码，加入集合
+            searchCopy.decode(solutionClassName)
+            individualList.append(searchCopy)
+            individualMakespanList.append(searchCopy.makespan)
+
+        # 选出searchTimes个个体中最好的一个
+        bestIndividual = individualList[individualMakespanList.index(min(individualMakespanList))]
+
+        # 如果要替换
+        if inplace == 1:
+            # <=才去替换
+            if bestIndividual.makespan <= self.makespan:
+                self.segment1 = copy.deepcopy(bestIndividual.segment1)
+                self.segment2 = copy.deepcopy(bestIndividual.segment2)
+                self.makespan = copy.deepcopy(bestIndividual.makespan)
+                self.lastLotInd = bestIndividual.lastLotInd
+                self.lastSublotInd = bestIndividual.lastSublotInd
+
+        # 如果不用替换
+        else:
+            if bestIndividual.makespan < self.makespan:
+                neighbourCounts[neighbour] += 1
+            return bestIndividual
+
 
 
 
@@ -493,7 +521,7 @@ class generalIndividual:
 # # test.neighbourInverseLotsOfAMachine()
 # # test.coarseGrainNeibourS2()
 # # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
-# test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
+# # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
 # test5 = test.crossoverBetweenBothSegmentsReturnBestChild(test2, 0.5, 0.5, generalSolution)
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
@@ -524,20 +552,16 @@ class generalIndividual:
 # # 测试多步邻域算子
 # test = generalIndividual(lotNum, lotSizes, machineNum)
 # test.initializeIndividual()
-# print(test.segment2.preferenceCode)
 # for item in test.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
+# print(test.segment2.preferenceCode)
 # test.decode(generalSolution)
 # print(test.makespan)
 # print('--------------')
 #
-# list1 = [6, 1, 7, 4]
-# list2 = [[1, 1, 4, 8, 1, 5], [20], [4, 2, 2, 2, 2, 4, 4], [1, 4, 9, 6]]
-# list3 = [[1, 2, 0, 3], [1, 2, 0, 3], [1, 3, 0, 2], [1, 3, 0, 2], [3, 2, 1, 0], [1, 2, 0, 3]]
-#
-# # list1 = [8, 2, 6, 2]
-# # list2 = [[4, 1, 4, 3, 1, 1, 3, 3], [1, 19], [3, 2, 3, 4, 4, 4], [12, 8]]
-# # list3 = [[1, 2, 3, 0], [1, 2, 0, 3], [3, 1, 0, 2], [3, 0, 2, 1], [2, 3, 1, 0], [2, 0, 1, 3]]
+# # list1 = [6, 1, 7, 4]
+# # list2 = [[1, 1, 4, 8, 1, 5], [20], [4, 2, 2, 2, 2, 4, 4], [1, 4, 9, 6]]
+# # list3 = [[1, 2, 0, 3], [1, 2, 0, 3], [1, 3, 0, 2], [1, 3, 0, 2], [3, 2, 1, 0], [1, 2, 0, 3]]
 #
 # # for ind in range(lotNum):
 # #     test.segment1.lotSplitingCode[ind].sublotNum = list1[ind]
@@ -545,17 +569,22 @@ class generalIndividual:
 # # test.segment2.preferenceCode = list3
 # # test.decode(generalSolution)
 #
-# print(test.makespan)
+# # new = test.neighbourSearch('s1coarse', 1, 10, generalSolution,inplace = 0)
+# test.neighbourSearch('s1coarse', 1, 10, generalSolution)
+#
+# print('after')
+#
 # for item in test.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
+# test.decode(generalSolution)
+# print(test.makespan)
 #
-# new = test.neighbourSearch('s1coarse', 1, 10, generalSolution,inplace = 0)
-# print('after')
-# print(new.makespan)
-# for item in new.segment1.lotSplitingCode:
-#     print(item.sublotSizes)
-# print(new.segment2.preferenceCode)
+# # print(new.makespan)
+# # for item in new.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(new.segment2.preferenceCode)
+# # print(new.makespan)
 
 
 
@@ -570,3 +599,8 @@ class generalIndividual:
 #     print(test.makespan)
 # print('--------------')
 
+
+
+# test = generalIndividual(lotNum, lotSizes, machineNum)
+# test2 = test.returnBestNewIndividuals(3, generalSolution)
+# print(test2.makespan)
