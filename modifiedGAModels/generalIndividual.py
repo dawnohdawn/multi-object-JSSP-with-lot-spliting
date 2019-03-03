@@ -130,6 +130,9 @@ class generalIndividual:
 
         输出：
         如果inplace为0，则返回两个子代
+
+        注意：
+        本函数不计算makespan
         """
         # 如果要替换
         if inplace == 1:
@@ -158,6 +161,29 @@ class generalIndividual:
                     indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
                         indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
             return indi1Copy, indi2Copy
+
+    def crossoverBetweenBothSegmentsReturnBestChild(self, indi2, p1, p2, solutionClassName):
+        """
+        功能：
+        同时对s1s2交叉，计算子代的makespan，并返回最优的子代
+
+        输入：
+        indi2       第二个父代
+        p1          s1交叉的选位概率
+        p2          s2交叉的选位概率
+        solutionClassName    用于decode的sulution类名字
+
+        输出：
+        优秀子代
+        """
+        child1, child2 = self.crossoverBetweenBothSegments(indi2, p1, p2, inplace=0)
+        child1.decode(solutionClassName)
+        child2.decode(solutionClassName)
+        if child1.makespan < child2.makespan:
+            return child1
+        else:
+            return child2
+
 
 
     def decode(self, solutionClassName):
@@ -452,30 +478,46 @@ class generalIndividual:
 # for item in test.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
 # print(test.segment2.preferenceCode)
+# test.decode(generalSolution)
+# print(test.makespan)
 #
 # print('parent2')
 # for item in test2.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
 # print(test2.segment2.preferenceCode)
+# test2.decode(generalSolution)
+# print(test2.makespan)
 #
 # print('after')
 # # test.neighbourSwapTwoLotsOfAMachine()
 # # test.neighbourInverseLotsOfAMachine()
 # # test.coarseGrainNeibourS2()
 # # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
-# test3, test4 = test.crossoverBetweenSegment2s(test2, 0.5, inplace = 0)
+# test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
+# test5 = test.crossoverBetweenBothSegmentsReturnBestChild(test2, 0.5, 0.5, generalSolution)
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
 #
 # print('child1')
-# print(test3.segment2.preferenceCode)
 # for item in test3.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
+# print(test3.segment2.preferenceCode)
+# test3.decode(generalSolution)
+# print(test3.makespan)
 #
 # print('child2')
-# print(test4.segment2.preferenceCode)
 # for item in test4.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
+# print(test4.segment2.preferenceCode)
+# test4.decode(generalSolution)
+# print(test4.makespan)
+#
+# print('child3')
+# for item in test5.segment1.lotSplitingCode:
+#     print(item.sublotSizes)
+# print(test5.segment2.preferenceCode)
+# test5.decode(generalSolution)
+# print(test5.makespan)
 
 
 

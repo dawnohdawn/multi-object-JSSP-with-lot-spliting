@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 1
+problemInd = 2
 
 """ 
 problemInd               问题编号，需要手动指定
@@ -143,6 +143,9 @@ for size in lotSizes:
 
 # 记录每个邻域算子成功次数的字典
 neighbourCounts = {'s1n1': 0, 's1n2': 0, 's1n3': 0, 's2n1': 0, 's2n2': 0, 's2n3': 0, 's2n4': 0, 's1coarse': 0, 's2coarse': 0}
+
+# 记录4个aging策略的成功次数
+ageFlag = [0 for _ in range(4)]
 
 # # 打印上述所有参数
 # print('timeMatrix: ')

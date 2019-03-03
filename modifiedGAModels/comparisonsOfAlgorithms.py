@@ -50,7 +50,7 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(30, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, \
+                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, \
                                                           muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
@@ -59,8 +59,8 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(30, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
-                                                      muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
+                                                      muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                        self.algorithms[algorithmInd].getBestIndividualCodes()])
@@ -105,7 +105,7 @@ class comparisonsOfAlgorithms:
             # elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
             # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
                 self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
-                                                  startIter=0, saveDetailsUsingDF=1)
+                                                  startIter=0, saveDetailsUsingDF=1, aging=1)
             #     self.algorithms[algorithmInd].modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
             #                                                10, \
             #                                                muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \

@@ -13,7 +13,7 @@ myMBO1Test = myMBO1(51, lotNum, lotSizes, machineNum)
 
 print('跑多遍')
 test = comparisonsOfAlgorithms([myMBO1Test])
-test.runManyTimes(2)
+test.runManyTimes(1)
 
 # print('收敛曲线')
 # # test = comparisonsOfAlgorithms([originalMBOTest, originalMBO_newNeighboursTest])
@@ -21,10 +21,11 @@ test.runManyTimes(2)
 # # test = comparisonsOfAlgorithms([originalMBOTest])
 # test.plotOneRun('OMBO & OMBO+NEI')
 
-print('p3跑10次originalMBO_newNeighboursTest，补充结果，跑完了')
+# print('p3跑10次myMBO1')
+print('p2，探究ageFlag阈值调到10,20,80之后，能否有改变')
 
 """
-result = np.array(list(test.makespans.originalMBO_newNeighbours)) 
+result = np.array(list(test.makespans.myMBO1)) 
 result.mean()
 result.std()
 result.min()
