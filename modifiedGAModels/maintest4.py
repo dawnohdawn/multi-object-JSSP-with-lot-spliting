@@ -13,16 +13,17 @@ myMBO1Test = myMBO1(51, lotNum, lotSizes, machineNum)
 
 print('跑多遍')
 test = comparisonsOfAlgorithms([myMBO1Test])
-test.runManyTimes(1)
+test.runManyTimes(20)
 
 # print('收敛曲线')
-# # test = comparisonsOfAlgorithms([originalMBOTest, originalMBO_newNeighboursTest])
-# test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
-# # test = comparisonsOfAlgorithms([originalMBOTest])
-# test.plotOneRun('OMBO & OMBO+NEI')
+# test = comparisonsOfAlgorithms([myMBO1Test])
+# # test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
+# # test = comparisonsOfAlgorithms([myMBO1Test])
+# test.plotOneRun('myMBO1+aging-P1')
 
-# print('p3跑10次myMBO1')
-print('p2，探究ageFlag阈值调到10,20,80之后，能否有改变')
+# print('p1跑1次myMBO1，观察185个体是怎么变为184的，是交叉，还是邻域搜索？邻域搜索的话是一步还是两步？')
+print('p4，myMBO1+aging，1000iter跑20次，agingThreshold=[10, 30, 40]')
+# print('p1，myMBO1+aging，收敛图，使用了相同的random seed')
 
 """
 result = np.array(list(test.makespans.myMBO1)) 

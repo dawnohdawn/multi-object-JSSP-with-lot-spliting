@@ -69,7 +69,9 @@ class myMBO1(generalPopulation):
 
 
         # 定义aging几个阈值
-        agingThreshold = [10, 20, 80]
+        # agingThreshold = [20, 40, 50]
+        agingThreshold = [10, 30, 40]
+        print('agingThreshold:', agingThreshold)
 
 
         def returnNeighbourFunctionRarameterByAging(birdAge):
@@ -97,23 +99,33 @@ class myMBO1(generalPopulation):
                     return [2, 2]
 
 
-        def updatAgeFlag(birdAge):
+        def updatAgeFlag(birdAge, mode):
             """
             功能：
             当个体有进步的时候，根据个体的age，使用该函数更新ageFlag
 
             输入：
             birdAge      一只鸟的age
+            mode         要么是succeed，要么是fail
 
             注意：
             本函数不适用于丢弃时ageFlag的更新
             """
-            if birdAge < agingThreshold[0]:
-                ageFlag[0] += 1
-            elif birdAge >= agingThreshold[0] and birdAge < agingThreshold[1]:
-                ageFlag[1] += 1
-            elif birdAge >= agingThreshold[1] and birdAge < agingThreshold[2]:
-                ageFlag[2] += 1
+            # if birdAge < agingThreshold[0]:
+            #     ageFlag[0] += 1
+            # elif birdAge >= agingThreshold[0] and birdAge < agingThreshold[1]:
+            #     ageFlag[1] += 1
+            # elif birdAge >= agingThreshold[1] and birdAge < agingThreshold[2]:
+            #     ageFlag[2] += 1age
+            for i in range(7):
+                if birdAge in range(10 * i, 10 * (i + 1), 1):
+                    # ageFlag[i] += 1
+                    ageFlag[i][1] += 1
+                    if mode == 'succeed':
+                        ageFlag[i][0] += 1
+
+
+
 
         progress = [0 for _ in range(iterNum)]
 
@@ -148,7 +160,7 @@ class myMBO1(generalPopulation):
                 iterInd = intervalInd * (M + A) + m
 
                 # 每50iter打印一次内部信息
-                # if(iterInd % 50 == 0):
+                # if(iterInd % 1 == 0):
                 #     print(age)
                 #     print(self.getMakespansOfAllIndividuals())
                 #     print(self.getBestIndividualCodes())
@@ -160,18 +172,23 @@ class myMBO1(generalPopulation):
                 # 初始化领头鸟邻域集
                 leaderNei = []
                 leaderNeiMakespan = []
-                # 先生成K个邻域解
+                # 生成K个邻域解
                 for _ in range(K):
-                    tempBird = self.pop[leaderInd].neighbourSearch('random', 1, 1, self.solutionClassName, inplace = 0)
+                    para = returnNeighbourFunctionRarameterByAging(age[leaderInd])
+                    tempBird = self.pop[leaderInd].neighbourSearch('random', para[0], para[1], self.solutionClassName, inplace = 0)
                     leaderNei.append(tempBird)
                     leaderNeiMakespan.append(tempBird.makespan)
+                    # 更新ageFlag
+                    if min(leaderNeiMakespan) < self.pop[leaderInd].makespan:
+                        updatAgeFlag(age[leaderInd], mode = 'succeed')
+                    else:
+                        updatAgeFlag(age[leaderInd], mode='fail')
                 # 选出最好的邻域解，与领头鸟择优，更新年龄
                 if min(leaderNeiMakespan) <= self.pop[leaderInd].makespan:
-                    # 替换领头鸟
+                    age[leaderInd] = 0
                     bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
                     bestNei = leaderNei[bestNeiInd]
                     newPop[leaderInd] = copy.deepcopy(bestNei)
-                    age[leaderInd] = 0
                 else:
                     age[leaderInd] += 1
 
@@ -202,24 +219,26 @@ class myMBO1(generalPopulation):
                                 wingNei.append(tempBird)
                                 wingNeiMakespan.append(tempBird.makespan)
                                 # 更新ageFlag
-                                if min(wingNeiMakespan) < self.pop[birdInd].makespan:
-                                    updatAgeFlag(age[birdInd])
+                                if tempBird.makespan < self.pop[birdInd].makespan:
+                                    updatAgeFlag(age[birdInd], mode = 'succeed')
+                                else:
+                                    updatAgeFlag(age[birdInd], mode='fail')
                             # 选出最好的邻域解，与该鸟择优
-                            # 如果<=了，替换，重置该鸟年龄
+                            # 如果<=了，替换
                             if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                                age[birdInd] = 0
                                 bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
                                 bestNei = wingNei[bestNeiInd]
                                 newPop[birdInd] = copy.deepcopy(bestNei)
-                            # 如果没有<=，该鸟年龄+1
+                            # 更新年龄
+                            if min(wingNeiMakespan) < self.pop[birdInd].makespan:
+                                age[birdInd] = 0
                             else:
                                 age[birdInd] += 1
-
                         # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
                         else:
-                            newPop[birdInd] = self.pop[birdInd].returnBestNewIndividuals(K, generalSolution)
+                            newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
                             # 记录aging策略成功次数
-                            ageFlag[3] += 1
+                            ageFlag[-1][1] += 1
                             # 更新年龄
                             age[birdInd] = 0
 
@@ -254,10 +273,10 @@ class myMBO1(generalPopulation):
                 iterInd = intervalInd * (M + A) + M + a
 
                 # 每50iter打印一次内部信息
-                # if(iterInd % 50 == 0):
+                # if(iterInd % 1 == 0):
                 #     print(age)
                 #     print(self.getMakespansOfAllIndividuals())
-                #     print(self.get
+                #     print(self.getBestIndividualCodes())
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
                 newPop = copy.deepcopy(self.pop)
@@ -284,23 +303,26 @@ class myMBO1(generalPopulation):
                             wingNei.append(tempBird)
                             wingNeiMakespan.append(tempBird.makespan)
                             # 更新ageFlag
-                            if min(wingNeiMakespan) < self.pop[birdInd].makespan:
-                                updatAgeFlag(age[birdInd])
+                            if tempBird.makespan < self.pop[birdInd].makespan:
+                                updatAgeFlag(age[birdInd], mode = 'succeed')
+                            else:
+                                updatAgeFlag(age[birdInd], mode='fail')
                         # 选出最好的邻域解，与该鸟择优
-                        # 如果<=了，替换，重置该鸟年龄
+                        # 如果<=了，替换
                         if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                            age[birdInd] = 0
                             bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
                             bestNei = wingNei[bestNeiInd]
                             newPop[birdInd] = copy.deepcopy(bestNei)
-                        # 如果没有<=，该鸟年龄+1
+                        # 更新年龄
+                        if min(wingNeiMakespan) < self.pop[birdInd].makespan:
+                            age[birdInd] = 0
                         else:
                             age[birdInd] += 1
                     # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
                     else:
-                        newPop[birdInd] = self.pop[birdInd].returnBestNewIndividuals(K, generalSolution)
+                        newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
                         # 记录aging策略成功次数
-                        ageFlag[3] += 1
+                        ageFlag[-1][1] += 1
                         # 更新年龄
                         age[birdInd] = 0
 
@@ -337,9 +359,9 @@ class myMBO1(generalPopulation):
 
 
 
-test = myMBO1(51, lotNum, lotSizes, machineNum)
-print('done')
-test.iterate(500, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1)
+# test = myMBO1(51, lotNum, lotSizes, machineNum)
+# print('done')
+# test.iterate(500, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1)
 
 # test.getBestIndividualCodes()
 # test.getMakespansOfAllIndividuals()

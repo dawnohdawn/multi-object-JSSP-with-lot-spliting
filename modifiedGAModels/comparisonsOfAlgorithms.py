@@ -61,6 +61,8 @@ class comparisonsOfAlgorithms:
                         self.algorithms[algorithmInd].resetPop()
                     self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
                                                       muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1)
+                    # self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
+                    #                                       muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                        self.algorithms[algorithmInd].getBestIndividualCodes()])
@@ -89,29 +91,23 @@ class comparisonsOfAlgorithms:
         if restart == 1:
             self.oneRunData = pd.DataFrame(columns=self.columnNames)
 
+        # 让每个算法都是用相同的random seed
+        np.random.seed(3)
         for algorithmInd in range(self.algorithmNum):
-
-
             if self.algorithms[algorithmInd].name.startswith('originalMBO'):
-            # if 'generalPopulation' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
-            # if type(self.algorithms[algorithmInd]).__bases__[0] == generalPopulation:
-            #     self.algorithms[algorithmInd].iterate(200, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, needCalAllMakespan=1, \
-            #                                           muteEveryIter=1, muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
                                                       startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
             elif self.algorithms[algorithmInd].name.startswith('myMBO'):
-            # elif 'generalGAModel' in str(type(self.algorithms[algorithmInd]).__bases__[0]):
-            # elif type(self.algorithms[algorithmInd]).__bases__[0] == generalGAModel:
                 self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
                                                   startIter=0, saveDetailsUsingDF=1, aging=1)
-            #     self.algorithms[algorithmInd].modelIterate(10, 10, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.3, 0.3, 'exchange',
-            #                                                10, \
-            #                                                muteEveryGAIter=1, muteGAResult=1, muteEveryOuterIter=1, \
-            #                                                muteOuterResult=0, saveDetailsUsingDF=1)
-                self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
-                    "bestMakespan"]
+                # self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
+                #                                       muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                # self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
+                #     "bestMakespan"]
+                self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
+                set_index(["iter"])['bestMakespan']
         # 存储收敛图像
         self.oneRunData.plot()
         plt.savefig(PATH + "\\convergeData\\" + fileName + '.png', dpi=160)
