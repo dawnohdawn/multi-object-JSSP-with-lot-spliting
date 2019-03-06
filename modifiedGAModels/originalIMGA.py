@@ -16,3 +16,8 @@ class originalIMGA(generalGAModel):
         """
         super(originalIMGA, self).__init__(modelSize, popSize, lotNum, lotSizes, machineNum, generalIndividual, \
                                            generalPopulation, generalSolution)
+
+        self.name = 'originalIMGA'
+
+
+

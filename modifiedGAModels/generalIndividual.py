@@ -40,6 +40,15 @@ class generalIndividual:
         self.lastSublotInd = -1
 
 
+    def reinitializeAlotSplitingVec(self):
+        """
+        功能：
+        随机选取一条lotSplitingVec，重新初始化
+        """
+        selectedInd = random.randint(0, self.lotNum - 1)
+        self.segment1.lotSplitingCode[selectedInd].initializeLotSplitingVec()
+
+
     def returnBestNewIndividuals(self, n, solutionClassName):
         """
         功能：
@@ -136,6 +145,41 @@ class generalIndividual:
                     indi1Copy.segment2.preferenceCode[i], indi2Copy.segment2.preferenceCode[i] = \
                         indi2Copy.segment2.preferenceCode[i], indi1Copy.segment2.preferenceCode[i]
             return indi1Copy, indi2Copy
+
+
+    def crossoverBetweenSegment2sWithPOX(self, indi2, p):
+        """
+        功能：
+        s2交叉的第二种方法，POX
+        先按p的概率选择几个job，在所有preferenceVec中，这几个job的位置不变，其他job的顺序用indi2的
+
+        输入：
+        indi2       另一个个体
+        p           选job的概率
+        """
+        # 选择不变的job
+        selectedJobs = [i for i in range(self.lotNum) if random.random() < p]
+        while len(selectedJobs) % self.lotNum == 0 or len(selectedJobs) == self.lotNum - 1:
+            selectedJobs = [i for i in range(self.lotNum) if random.random() < p]
+        notSelectedJobs = [i for i in range(self.lotNum) if i not in selectedJobs]
+
+        # 将notSelectedJobs在各个vec的位置都找出来
+        indi1Pos = [[i for i in range(self.lotNum) if self.segment2.preferenceCode[vecInd][i] in notSelectedJobs] for vecInd in range(self.machineNum)]
+        indi2Pos = [[i for i in range(self.lotNum) if indi2.segment2.preferenceCode[vecInd][i] in notSelectedJobs] for vecInd in range(self.machineNum)]
+
+        # 将notSelectedJobs在各个vec的顺序找出来
+        indi1Order = [[item for item in self.segment2.preferenceCode[vecInd] if item in notSelectedJobs] for vecInd in range(self.machineNum)]
+        indi2Order = [[item for item in indi2.segment2.preferenceCode[vecInd] if item in notSelectedJobs] for vecInd in range(self.machineNum)]
+
+        # 改变
+        for vecInd in range(self.machineNum):
+            for posInd in range(len(indi2Order[0])):
+                self.segment2.preferenceCode[vecInd][indi1Pos[vecInd][posInd]] = copy.deepcopy(indi2Order[vecInd][posInd])
+        for vecInd in range(self.machineNum):
+            for posInd in range(len(indi1Order[0])):
+                indi2.segment2.preferenceCode[vecInd][indi2Pos[vecInd][posInd]] = copy.deepcopy(indi1Order[vecInd][posInd])
+
+        # print(selectedJobs)
 
 
     def crossoverBetweenBothSegments(indi1, indi2, p1, p2, inplace = 1):
@@ -509,43 +553,59 @@ class generalIndividual:
 # test.decode(generalSolution)
 # print(test.makespan)
 #
-# print('parent2')
-# for item in test2.segment1.lotSplitingCode:
-#     print(item.sublotSizes)
-# print(test2.segment2.preferenceCode)
-# test2.decode(generalSolution)
-# print(test2.makespan)
+# # print('parent2')
+# # for item in test2.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(test2.segment2.preferenceCode)
+# # test2.decode(generalSolution)
+# # print(test2.makespan)
 #
 # print('after')
+# # test.crossoverBetweenSegment2sWithPOX(test2, 0.5)
+# test.reinitializeAlotSplitingVec()
 # # test.neighbourSwapTwoLotsOfAMachine()
 # # test.neighbourInverseLotsOfAMachine()
 # # test.coarseGrainNeibourS2()
 # # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
 # # test3, test4 = test.crossoverBetweenBothSegments(test2, 0.5, 0.5, inplace = 0)
-# test5 = test.crossoverBetweenBothSegmentsReturnBestChild(test2, 0.5, 0.5, generalSolution)
+# # test5 = test.crossoverBetweenBothSegmentsReturnBestChild(test2, 0.5, 0.5, generalSolution)
 # # for item in test.segment1.lotSplitingCode:
 # #     print(item.sublotSizes)
 #
-# print('child1')
-# for item in test3.segment1.lotSplitingCode:
+# print('parent1')
+# for item in test.segment1.lotSplitingCode:
 #     print(item.sublotSizes)
-# print(test3.segment2.preferenceCode)
-# test3.decode(generalSolution)
-# print(test3.makespan)
+# print(test.segment2.preferenceCode)
+# test.decode(generalSolution)
+# print(test.makespan)
 #
-# print('child2')
-# for item in test4.segment1.lotSplitingCode:
-#     print(item.sublotSizes)
-# print(test4.segment2.preferenceCode)
-# test4.decode(generalSolution)
-# print(test4.makespan)
+# # print('parent2')
+# # for item in test2.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(test2.segment2.preferenceCode)
+# # test2.decode(generalSolution)
+# # print(test2.makespan)
 #
-# print('child3')
-# for item in test5.segment1.lotSplitingCode:
-#     print(item.sublotSizes)
-# print(test5.segment2.preferenceCode)
-# test5.decode(generalSolution)
-# print(test5.makespan)
+# # print('child1')
+# # for item in test3.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(test3.segment2.preferenceCode)
+# # test3.decode(generalSolution)
+# # print(test3.makespan)
+# #
+# # print('child2')
+# # for item in test4.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(test4.segment2.preferenceCode)
+# # test4.decode(generalSolution)
+# # print(test4.makespan)
+# #
+# # print('child3')
+# # for item in test5.segment1.lotSplitingCode:
+# #     print(item.sublotSizes)
+# # print(test5.segment2.preferenceCode)
+# # test5.decode(generalSolution)
+# # print(test5.makespan)
 
 
 

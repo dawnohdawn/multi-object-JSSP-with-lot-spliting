@@ -46,7 +46,7 @@ class comparisonsOfAlgorithms:
             for algorithmInd in range(self.algorithmNum):
                 print('run:', runInd, self.algorithms[algorithmInd].name)
                 # 注意不同的对象要使用不同的操作
-                if self.algorithms[algorithmInd].name.startswith('original'):
+                if self.algorithms[algorithmInd].name.startswith('originalMBO'):
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
@@ -55,7 +55,7 @@ class comparisonsOfAlgorithms:
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
-                elif self.algorithms[algorithmInd].name.startswith('my'):
+                elif self.algorithms[algorithmInd].name.startswith('myMBO1'):
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
@@ -66,6 +66,34 @@ class comparisonsOfAlgorithms:
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                        self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('originalIMGA'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetModel()
+                    self.algorithms[algorithmInd].modelIterate(1000, 10, 0.8, 0.3, 0.3, 0.4, 0.4, 0.3, 0.3, 0.3, 'exchange', \
+                                                          10, muteEveryGAIter = 1,  muteGAResult = 1, \
+                                                          muteEveryOuterIter = 0, muteOuterResult = 0, saveDetailsUsingDF = 1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
+                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('NIMGA'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetModel()
+                    self.algorithms[algorithmInd].modelIterate(1000, 0.8, 0.5, 0.5, muteEveryGAIter = 1,  \
+                                                                muteGAResult = 0, muteEveryOuterIter = 0, muteOuterResult = 0, \
+                                                               saveDetailsUsingDF = 1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
+                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('HGA'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetModel()
+                    self.algorithms[algorithmInd].iterate(1000, 0.8, 0.5, needcalAllMakespan=1, muteEveryIter=0, muteResult=0)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
+                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
 
