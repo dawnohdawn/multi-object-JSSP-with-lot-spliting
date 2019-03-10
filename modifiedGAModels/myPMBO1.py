@@ -1,10 +1,14 @@
-from generalPopulation import generalPopulation
-from generalIndividual import generalIndividual
-from generalSolution import generalSolution
 from globalVariablesAndFunctions import *
+from generalSolution import generalSolution
+from generalIndividual import generalIndividual
+from generalPopulation import generalPopulation
 
 
-class myMBO1(generalPopulation):
+#################################
+# 以下是单种群类
+#################################
+
+class myMBO(generalPopulation):
     """
     继承generalPopulation得到
     """
@@ -13,16 +17,16 @@ class myMBO1(generalPopulation):
         """
         指定了individual类是generalIndividual，solution类是generalSolution
         """
-        super(myMBO1, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
+        super(myMBO, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
 
-        self.name = 'myMBO1'
+        # self.name = 'myMBO'
 
         # 每个个体的年龄
         self.age = [0 for _ in range(self.popSize)]
 
 
 
-    def iterate(self, iterNum, K, S, M, A, disturbNum=0.2, maxDisturbGap=0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
+    def iterate(self, iterNum, K, S, M, A, neighbourSearchMode, disturbNum, maxDisturbGap, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, **kw):
         """
         功能：              简单GA迭代，可对同一个population对象连续使用
                             首次使用应把needcalAllMakespan设为1，后面应设为0以减少重复计算
@@ -33,6 +37,9 @@ class myMBO1(generalPopulation):
         S                   the number of neighbor solutions to be shared with the next solution
         M                   number of tours
         A                   调整队形阶段的迭代次数
+        neighbourSearchMode 邻域搜索模式，可以是'random','s1','s2'
+        disturbNum          模糊排序中的扰乱次数百分比
+        maxDisturbGap       模糊排序中的扰乱跨度
         needcalAllMakespan  在循环迭代之前是否需要计算全部个体的makespan，默认为1
         muteEveryIter       如果为0，打印每次迭代种群中最好makespan
         muteResult          如果为0，打印迭代结束后最好makespan
@@ -128,8 +135,6 @@ class myMBO1(generalPopulation):
                         ageFlag[i][0] += 1
 
 
-
-
         progress = [0 for _ in range(iterNum)]
 
         # 第一代在此计算所有individual的makespan
@@ -179,7 +184,7 @@ class myMBO1(generalPopulation):
                 # 生成K个邻域解
                 for _ in range(K):
                     para = returnNeighbourFunctionRarameterByAging(self.age[leaderInd])
-                    tempBird = self.pop[leaderInd].neighbourSearch('random', para[0], para[1], self.solutionClassName, inplace = 0)
+                    tempBird = self.pop[leaderInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace = 0)
                     leaderNei.append(tempBird)
                     leaderNeiMakespan.append(tempBird.makespan)
                     # 更新ageFlag
@@ -219,7 +224,7 @@ class myMBO1(generalPopulation):
                             # 生成该鸟的邻域解，加入邻域集
                             for _ in range(K - S):
                                 para = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
-                                tempBird = self.pop[birdInd].neighbourSearch('random', para[0], para[1], self.solutionClassName, inplace=0)
+                                tempBird = self.pop[birdInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace=0)
                                 wingNei.append(tempBird)
                                 wingNeiMakespan.append(tempBird.makespan)
                                 # 更新ageFlag
@@ -303,7 +308,7 @@ class myMBO1(generalPopulation):
                         # 生成该鸟的邻域解，加入邻域集
                         for _ in range(K - S):
                             para2 = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
-                            tempBird = self.pop[birdInd].neighbourSearch('random', para2[0], para2[1], self.solutionClassName, inplace=0)
+                            tempBird = self.pop[birdInd].neighbourSearch(neighbourSearchMode, para2[0], para2[1], self.solutionClassName, inplace=0)
                             wingNei.append(tempBird)
                             wingNeiMakespan.append(tempBird.makespan)
                             # 更新ageFlag
@@ -364,8 +369,297 @@ class myMBO1(generalPopulation):
 
 
 
-# test = myMBO1(51, lotNum, lotSizes, machineNum)
-# test.iterate(1000, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1, needReinitializeAge=1)
 
-# test.getBestIndividualCodes()
-# test.getMakespansOfAllIndividuals()
+#################################
+# 以下是多种群类
+#################################
+
+class myPMBO1:
+    """
+    成员变量：
+    self.modelSize       有多少个island（种群）
+    self.popSize         每个种群有多少个individual
+    self.lotNum          有多少个lot
+    self.lotSizes        list，每个lot有多少个工件
+    self.machineNum      有多少台机器
+    self.model           list，由self.modleSize个pop类组成
+    self.detailsOfModel  记录每一代每一个种群的最好个体的makespan，行数=种群个数*innerIterNum*OuterIterNum
+    """
+
+    def __init__(self, modelSize, popSize, lotNum, lotSizes, machineNum):
+        self.modelSize = modelSize
+        self.popSize = popSize
+        self.lotNum = lotNum
+        self.lotSizes = lotSizes
+        self.machineNum = machineNum
+        self.individualClassName = generalIndividual
+        self.popClassName = myMBO
+        self.solutionClassName = generalSolution
+
+        self.model = [self.popClassName(self.popSize, self.lotNum, self.lotSizes, self.machineNum) for i in range(self.modelSize)]
+
+        self.detailsOfModel = pd.DataFrame(columns=['pop', 'iter', 'outerIter', 'bestMakespan'])
+
+        self.name = 'myPMBO1'
+
+
+    def resetModel(self):
+        """
+        重新初始化所有种群的所有个体
+        """
+        for i in range(self.modelSize):
+            self.model[i].resetPop()
+
+
+    def calAllModelMakespan(self):
+        """
+        功能：     对所有种群里所有个体计算makespan
+        """
+        for i in range(self.modelSize):
+            self.model[i].calAllMakespan()
+
+
+    def getBestMakespanOfEveryPop(self):
+        """
+        功能：     返回每个种群最好makespan组成的list
+        """
+        return [self.model[i].getBestMakespan() for i in range(self.modelSize)]
+
+
+    def getBestMakespanAmongAllPops(self):
+        """
+        功能：     返回所有种群中最好的makespan
+        """
+        return min(self.getBestMakespanOfEveryPop())
+
+
+    def getBestIndexOfAllPops(self):
+        """
+        功能：     返回所有种群中最优个体的pop序号和个体序号
+        输出：
+        pop序号
+        个体序号
+        """
+        bestIndexs = [self.model[i].getBestIndividualIndex() for i in range(self.modelSize)]
+        bestMakespans = self.getBestMakespanOfEveryPop()
+
+        popInd = bestMakespans.index(min(bestMakespans))
+        indiInd = bestIndexs[popInd]
+
+        return popInd, indiInd
+
+
+    def getMakespansOfAllIndividuals(self):
+        """
+        功能：     返回所有个体的makespan，返回一个二维的list
+        """
+        makespans = []
+        for i in range(self.modelSize):
+            makespans.append(self.model[i].getMakespansOfAllIndividuals())
+
+        return makespans
+
+
+    def getBestIndividualCodes(self):
+        """
+        功能：        返回最优个体的sublotNum、sublotSizes、preferenceCode，都是以list的形式
+        """
+        # 找到最优个体的序号
+        bestPopInd, bestIndiInd = self.getBestIndexOfAllPops()
+
+        return self.model[bestPopInd].getBestIndividualCodes()
+
+
+    def getCertainIndividualOfPopulation(self, popInd, mode, choosePercentage):
+        """
+        功能：            返回某个种群部分个体在种群中的序号
+
+        输入：
+        popInd            种群序号
+        mode              选择模式，可以是'best','worst',random'
+        choosePercentage  选出choosePercentage%个个体，例如可以是10，30等
+
+        输出：
+        indexs            一个list，包含部分个体在种群中的序号
+        """
+        # 先确定要选多少个个体
+        chooseNum = int(choosePercentage * self.popSize / 100.0)
+
+        # 找出个体的索引
+        if mode == 'best':
+            makespanList = [self.model[popInd].pop[i].makespan for i in range(self.popSize)]
+            indexs = getBestOrWorstIndexs(mode, makespanList, chooseNum)
+        elif mode == 'worst':
+            makespanList = [self.model[popInd].pop[i].makespan for i in range(self.popSize)]
+            indexs = getBestOrWorstIndexs(mode, makespanList, chooseNum)
+        elif mode == 'random':
+            indexs = random.sample(range(self.popSize), chooseNum)
+
+        return indexs
+
+
+    def getBestAndRamdomIndividualOfPopulation(self, popInd, choosePercentage):
+        """
+        功能：            返回某个种群最优和随机的个体
+
+        输入：
+        popInd            种群序号
+        choosePercentage  最优个体和随机个体分别需要多少个
+        """
+        # 先确定分别要选多少个best和random个体
+        chooseNum = int(choosePercentage * self.popSize / 100.0)
+
+        # 选出最好的个体
+        makespanList = [self.model[popInd].pop[i].makespan for i in range(self.popSize)]
+        bestIndexs = getBestOrWorstIndexs('best', makespanList, chooseNum)
+
+        # 从剩余个体中选出随机个体
+        randomPool = [i for i in range(self.popSize) if i not in bestIndexs]
+        randomIndexs = random.sample(randomPool, chooseNum)
+
+        return bestIndexs, randomIndexs
+
+
+    def migrateBetweenTwoPops(self, mode, popIndex1, popIndex2, individualIndexs1, individualIndexs2):
+        """
+        功能：              在两个种群之间迁移
+
+        输入：
+        mode                模式，可以是'replace'，或者是'exchange'
+        popIndex1           第一个种群序号，如果模式是'replace'，则为源种群序号
+        popIndex2           第二个种群序号，如果模式是'replace'，则为目标种群序号
+        individualIndexs1   list，第一个种群中需要migrate的个体序号
+        individualIndexs2   list，第二个种群中需要migrate的个体序号
+        """
+        if mode == 'replace':
+            for i in range(len(individualIndexs1)):
+                self.model[popIndex2].pop[individualIndexs2[i]] = copy.deepcopy(
+                    self.model[popIndex1].pop[individualIndexs1[i]])  # 要深copy才保险
+                # 还要记得把age改了
+                self.model[popIndex2].age[individualIndexs2[i]] = copy.deepcopy(
+                    self.model[popIndex1].age[individualIndexs1[i]])
+        elif mode == 'exchange':
+            for i in range(len(individualIndexs1)):
+                self.model[popIndex1].pop[individualIndexs1[i]], self.model[popIndex2].pop[individualIndexs2[i]] = \
+                    self.model[popIndex2].pop[individualIndexs2[i]], self.model[popIndex1].pop[individualIndexs1[i]]
+                # 还要记得把age交换了
+                self.model[popIndex1].age[individualIndexs1[i]], self.model[popIndex2].age[individualIndexs2[i]] = \
+                    self.model[popIndex2].age[individualIndexs2[i]], self.model[popIndex1].age[individualIndexs1[i]]
+
+
+    def migrationOfAllPops(self, mode, choosePercentage):
+        """
+        功能:              所有种群进行迁移
+
+        输入：
+        mode               模式，可以是'replace'，或者是'exchange'
+        choosePercentage   选出choosePercentage%个个体，例如可以是10，30等
+        """
+        # 先生成每个种群最好和最差的个体index
+        migrateIndexs = []
+        for i in range(self.modelSize):
+            # migrateIndexs.append(
+            #     [self.getCertainIndividualOfPopulation(i, mode='best', choosePercentage=choosePercentage), \
+                 # self.getCertainIndividualOfPopulation(i, mode='worst', choosePercentage=choosePercentage)])
+             migrateIndexs.append(self.getBestAndRamdomIndividualOfPopulation(i, choosePercentage=choosePercentage))
+
+        # 三个种群按照0-1,1-2,2-0的顺序migration
+        for i in range(self.modelSize):
+            fromPop = i
+            toPop = (i + 1) % self.modelSize
+            self.migrateBetweenTwoPops(mode, fromPop, toPop, migrateIndexs[fromPop][0], migrateIndexs[toPop][1])
+
+
+    def modelIterate(self, outerIterNum, innerIterNum, K, S, M, A, mode, migratePercentage, \
+                     muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, **kw):
+
+        """
+        功能：                      使用简单GA迭代来构建IMGA的迭代
+
+        输入：
+        outerIterNum                模型要进行多少次migrate
+        innerIterNum                每多少个iter就要migrate一次，innerIterNum应该是(M+A)的倍数
+        K                           the number of neighbor solutions to be considered
+        S                           the number of neighbor solutions to be shared with the next solution
+        M                           number of tours
+        A                           调整队形阶段的迭代次数
+        mode                        模式，可以是'replace'，或者是'exchange'
+        muteEveryGAIter             如果为0，打印每次GA迭代种群中最好makespan
+        muteGAResult                如果为0，打印inner迭代结束后最好makespan
+        muteEveryOuterIter          如果为0，打印每次outer迭代种群中最好makespan
+        muteOuterResult             如果为0，打印outer迭代结束后最好makespan
+
+        可选输入：
+        kw['saveDetailsUsingDF']   是否生成一个DataFrame来记录详细结果
+        """
+        # 每次都要重置这个dataframe
+        self.detailsOfModel = pd.DataFrame(columns=['pop', 'iter', 'outerIter', 'bestMakespan'])
+
+        # 第一次迭代需要手动计算所有个体的makespan
+        self.calAllModelMakespan()
+
+        # 外部迭代
+        for outerIterInd in range(outerIterNum):
+
+            # 内部迭代
+            for popInd in range(self.modelSize):
+                # GA
+                if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
+                    saveDetailsUsingDF = kw['saveDetailsUsingDF']
+                # 三个种群分化进化
+                if popInd == 0:
+                    self.model[popInd].iterate(innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                                               muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
+                                               startIter=outerIterInd * innerIterNum, \
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging = 1, needReinitializeAge=0)
+                elif popInd == 1:
+                    self.model[popInd].iterate(innerIterNum, K, S, M, A, 's1', 0.25, 0.25, needcalAllMakespan=0, \
+                                               muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
+                                               startIter=outerIterInd * innerIterNum, \
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
+                elif popInd == 2:
+                    self.model[popInd].iterate(innerIterNum, K, S, M, A, 's2', 0.25, 0.25, needcalAllMakespan=0, \
+                                               muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
+                                               startIter=outerIterInd * innerIterNum, \
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
+                # print(self.model[popInd].age)
+                print(self.model[popInd].getMakespansOfAllIndividuals())
+                print(self.model[popInd].age)
+                # 记录到dataframe里
+                if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
+                    self.model[popInd].details['pop'] = popInd
+                    self.model[popInd].details['outerIter'] = outerIterInd
+                    self.detailsOfModel = self.detailsOfModel.append(self.model[popInd].details, ignore_index=True)
+
+            # 打印完整外部迭代一代后的结果
+            if muteEveryOuterIter == 0:
+                print('outerIter: %d' % outerIterInd, self.getBestMakespanAmongAllPops(),
+                      self.getBestMakespanOfEveryPop())
+
+            # 每个外部迭代一代，就迁移一次，迁移的mode在此指定
+            self.migrationOfAllPops(mode, choosePercentage=migratePercentage, )
+
+        if muteOuterResult == 0:
+            print('result after {num1} outerIteration and {num2} innerIteration which is {num3} in total:'. \
+                  format(num1=outerIterNum, num2=innerIterNum, num3=outerIterNum * innerIterNum), \
+                  self.getBestMakespanAmongAllPops())
+
+        # 整理一下这个dataframe
+        if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
+            self.detailsOfModel = self.detailsOfModel.groupby(['iter']).min()
+
+
+    def decodeAFixedIndividual(self, codeLists):
+        """
+        功能：       输入三条编码，观察解码过程，并生成甘特图
+
+        输入：
+        codeLists    为一个list，里面放着三条编码
+        """
+        self.model[0].decodeAFixedIndividual(codeLists)
+
+
+
+test = myPMBO1(3, 17, lotNum, lotSizes, machineNum)
+test.modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
+print('migration改为选择最优个体和随机个体')

@@ -468,9 +468,9 @@ class generalIndividual:
                 if neighbour == 'random':  # 所有上述邻域算子的随机
                     neighbourType = random.randint(0, 8)
                 elif neighbour == 's1':
-                    neighbourType = random.randint(0, 2)
-                elif neighbour == 's2':
                     neighbourType = random.randint(0, 3)
+                elif neighbour == 's2':
+                    neighbourType = random.randint(0, 4)
                 elif neighbour == 'random_simple':  # 这里是没有启发式邻域算子的random
                     availableType = [1, 2, 4, 5, 6]
                     neighbour = 'random'
@@ -505,10 +505,12 @@ class generalIndividual:
                 elif neighbour == 's2n4' or neighbour == 'random' and neighbourType == 6 or neighbour == 's2' and neighbourType == 3:
                     searchCopy.neighbourInverseLotsOfAMachine()
                     neighbour = 's2n4'
-                elif neighbour == 's1coarse' or neighbour == 'random' and neighbourType == 7 or neighbour == 'coarse' and neighbourType == 0:
+                elif neighbour == 's1coarse' or neighbour == 'random' and neighbourType == 7 or neighbour == 'coarse' and neighbourType == 0\
+                        or neighbour == 's1' and neighbourType == '3':
                     searchCopy.coarseGrainNeibourS1()
                     neighbour = 's1coarse'
-                elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1:
+                elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1\
+                        or neighbour == 's2' and neighbourType == '4':
                     searchCopy.coarseGrainNeibourS2()
                     neighbour = 's2coarse'
             # 解码，加入集合

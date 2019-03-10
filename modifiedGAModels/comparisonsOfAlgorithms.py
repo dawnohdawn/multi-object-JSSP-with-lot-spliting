@@ -59,8 +59,8 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
-                                                      muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1)
+                    self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0,
+                                                      muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1, needReinitializeAge=1)
                     # self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
                     #                                       muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
@@ -93,6 +93,12 @@ class comparisonsOfAlgorithms:
                     self.algorithms[algorithmInd].iterate(1000, 0.8, 0.5, needcalAllMakespan=1, muteEveryIter=0, muteResult=0)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
+                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('myPMBO1'):
+                    self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, \
+                                                               muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
@@ -127,9 +133,9 @@ class comparisonsOfAlgorithms:
                                                       startIter=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                     set_index(["iter"])['bestMakespan']
-            elif self.algorithms[algorithmInd].name.startswith('myMBO'):
-                self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
-                                                  startIter=0, saveDetailsUsingDF=1, aging=1)
+            elif self.algorithms[algorithmInd].name.startswith('myMBO1'):
+                self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
+                                                  startIter=0, saveDetailsUsingDF=1, aging=1, needReinitializeAge=1)
                 # self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
                 #                                       muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 # self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
