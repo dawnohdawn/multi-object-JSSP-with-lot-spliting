@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 3
+problemInd = 2
 
 
 
@@ -437,7 +437,39 @@ def chooseTwoNumByRoulette(roulette):
     return pos1, pos2
 
 
-def getBestOrWorstIndexs(mode, makespanList, indNum):
+def shuffleIndexOfMaxOrMin(mode, inList):
+    """
+    功能：
+    求inList中的最大值或最小值所在的index
+
+    输入：
+    mode       可以是'max','min'
+    inList     输入的序列
+
+    输出：
+    一个index号
+    """
+    if mode == 'max':
+        target = max(inList)
+    elif mode == 'min':
+        target = min(inList)
+    cnt = inList.count(target)
+    tempList = copy.deepcopy(inList)
+    if cnt > 1:
+        indexs = []
+        for i in range(cnt):
+            indexs.append(tempList.index(target))
+            tempList[tempList.index(target)] = 9999
+        # return indexs[random.randint(0, len(indexs) - 1)]
+        random.shuffle(indexs)
+        return indexs[0]
+    else:
+        return tempList.index(target)
+
+
+
+
+def getBestOrWorstIndexs(mode, makespanList, indNum, shuffle = 0):
     """
     功能：         找出给定makespanList中最好或者最坏的indNum个个体
 
@@ -448,23 +480,71 @@ def getBestOrWorstIndexs(mode, makespanList, indNum):
 
     输出：
     indexs         一个list，里面是individual在pop中的序号
+    shuffle        如果为1，则使排序与index脱钩
     """
 
     indexs = []
     temp = copy.deepcopy(makespanList)
 
-    if mode == 'best':
-        Inf = 99999999
-        for i in range(indNum):
-            indexs.append(temp.index(min(temp)))
-            temp[temp.index(min(temp))] = Inf
-    elif mode == 'worst':
-        Inf = 0
-        for i in range(indNum):
-            indexs.append(temp.index(max(temp)))
-            temp[temp.index(max(temp))] = Inf
+    if shuffle == 0:
+        if mode == 'best':
+            Inf = 99999999
+            for i in range(indNum):
+                indexs.append(temp.index(min(temp)))
+                temp[temp.index(min(temp))] = Inf
+        elif mode == 'worst':
+            Inf = 0
+            for i in range(indNum):
+                indexs.append(temp.index(max(temp)))
+                temp[temp.index(max(temp))] = Inf
+        return indexs
 
-    return indexs
+    elif shuffle == 1:
+        if mode == 'best':
+            Inf = 99999999
+            for i in range(indNum):
+                chosenIndex = shuffleIndexOfMaxOrMin('min', temp)
+                indexs.append(chosenIndex)
+                temp[chosenIndex] = Inf
+        elif mode == 'worst':
+            Inf = 0
+            for i in range(indNum):
+                chosenIndex = shuffleIndexOfMaxOrMin('max', temp)
+                indexs.append(chosenIndex)
+                temp[chosenIndex] = Inf
+        return indexs
+
+
+# def getShuffleBestOrWorstIndexs(mode, makespanList, indNum):
+#     """
+#     功能：         找出给定makespanList中最好或者最坏的indNum个个体
+#
+#     输入：
+#     mode           选择模式，可以是'best','worst'
+#     makespanList   list，给定完工时间列表
+#     indNum         要选出多少个
+#
+#     输出：
+#     indexs         一个list，里面是individual在pop中的序号
+#     """
+#
+#     indexs = []
+#     temp = copy.deepcopy(makespanList)
+#
+#     if mode == 'best':
+#         Inf = 99999999
+#         for i in range(indNum):
+#             chosenIndex = shuffleIndexOfMaxOrMin('min', temp)
+#             indexs.append(chosenIndex)
+#             temp[chosenIndex] = Inf
+#     elif mode == 'worst':
+#         Inf = 0
+#         for i in range(indNum):
+#             chosenIndex = shuffleIndexOfMaxOrMin('max', temp)
+#             indexs.append(chosenIndex)
+#             temp[chosenIndex] = Inf
+#
+#     return indexs
 
 
 

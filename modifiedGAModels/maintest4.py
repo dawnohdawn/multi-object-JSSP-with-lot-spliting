@@ -31,7 +31,7 @@ test.runManyTimes(20)
 # test.plotOneRun('myMBO1+aging-P1')
 
 # print('p1跑1次myMBO1，观察185个体是怎么变为184的，是交叉，还是邻域搜索？邻域搜索的话是一步还是两步？')
-print('p3，myPMBO1，1000iter跑20次')
+print('p2，myPMBO1，1000iter跑20次')
 # print('p1，myMBO1+aging，收敛图，使用了相同的random seed')
 
 """
