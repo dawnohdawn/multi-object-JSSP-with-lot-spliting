@@ -164,9 +164,9 @@ class myMBO1(generalPopulation):
                 iterInd = intervalInd * (M + A) + m
 
                 # 每50iter打印一次内部信息
-                # if(iterInd % 1 == 0):
+                if(iterInd % 1 == 0):
                 #     print(self.age)
-                #     print(self.getMakespansOfAllIndividuals())
+                    print(self.getMakespansOfAllIndividuals())
                 #     print(self.getBestIndividualCodes())
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
@@ -277,10 +277,10 @@ class myMBO1(generalPopulation):
                 iterInd = intervalInd * (M + A) + M + a
 
                 # 每50iter打印一次内部信息
-                # if(iterInd % 1 == 0):
-                #     print(self.age)
-                #     print(self.getMakespansOfAllIndividuals())
-                #     print(self.getBestIndividualCodes())
+                if(iterInd % 1 == 0):
+                    # print(self.age)
+                    print(self.getMakespansOfAllIndividuals())
+                    # print(self.getBestIndividualCodes())
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
                 newPop = copy.deepcopy(self.pop)

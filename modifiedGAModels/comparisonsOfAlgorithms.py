@@ -45,6 +45,9 @@ class comparisonsOfAlgorithms:
             makespansOfThisRun = []
             for algorithmInd in range(self.algorithmNum):
                 print('run:', runInd, self.algorithms[algorithmInd].name)
+                # 设置seed，保证每个算法在同一个循环中都是相同的seed
+                random.seed(runInd)
+                print('set seed {}'.format(runInd))
                 # 注意不同的对象要使用不同的操作
                 if self.algorithms[algorithmInd].name.startswith('originalMBO'):
                     # 除了第一次run不用reset model之外，其他run都要
@@ -95,6 +98,9 @@ class comparisonsOfAlgorithms:
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
                 elif self.algorithms[algorithmInd].name.startswith('myPMBO1'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetModel()
                     self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, \
                                                                muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
