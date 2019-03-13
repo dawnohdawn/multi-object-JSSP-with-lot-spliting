@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 2
+problemInd = 3
 
 
 

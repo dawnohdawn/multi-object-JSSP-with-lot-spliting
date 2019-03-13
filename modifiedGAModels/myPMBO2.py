@@ -610,6 +610,37 @@ class myPMBO1:
             toPop = (i + 1) % self.modelSize
             self.migrateBetweenTwoPops(mode, fromPop, toPop, migrateIndexs[fromPop][0], migrateIndexs[toPop][1])
 
+    def getTwoGroupsOfWorstIndividual(self, popInd, choosePercentage, shuffle = 0):
+        """
+        功能:             返回两组最差个体，随机分组
+        输入：
+        popInd            种群序号
+        choosePercentage  最差个体和最差个体分别需要多少个
+        """
+        # 先确定分别要选多少个best和random个体
+        chooseNum = int(choosePercentage * self.popSize / 100.0)
+
+        # 选出最好的个体
+        makespanList = [self.model[popInd].pop[i].makespan for i in range(self.popSize)]
+        bestIndexs = getBestOrWorstIndexs('worst', makespanList, chooseNum * 2, shuffle = shuffle)
+
+        # 随机分成两组
+        random.shuffle(bestIndexs)
+        bestIndexs1 = bestIndexs[:chooseNum]
+        bestIndexs2 = bestIndexs[chooseNum:]
+
+        return bestIndexs1, bestIndexs2
+
+
+    def migrationOfAllPops2(self, mode, choosePercentage):
+        pop0Worst1, pop0Worst2 = self.getTwoGroupsOfWorstIndividual(0, choosePercentage=choosePercentage)
+        pop1Best, pop1Random = self.getBestAndRamdomIndividualOfPopulation(1, choosePercentage=choosePercentage)
+        pop2Best, pop2Random = self.getBestAndRamdomIndividualOfPopulation(2, choosePercentage=choosePercentage)
+
+        self.migrateBetweenTwoPops(mode, 0, 1, pop0Worst1, pop1Best)
+        self.migrateBetweenTwoPops(mode, 0, 2, pop0Worst2, pop2Best)
+        self.migrateBetweenTwoPops(mode, 1, 2, pop1Random, pop2Random)
+
 
     def modelIterate(self, outerIterNum, innerIterNum, K, S, M, A, mode, migratePercentage, \
                      muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, **kw):
@@ -673,7 +704,7 @@ class myPMBO1:
                     saveDetailsUsingDF = kw['saveDetailsUsingDF']
                 # 三个种群分化进化
                 if popInd == 0:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1&s2', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, aging = 1, needReinitializeAge=0)
@@ -765,7 +796,7 @@ class myPMBO1:
         self.model[0].decodeAFixedIndividual(codeLists)
 
 
-random.seed(0)
-test = myPMBO1(3, 17, lotNum, lotSizes, machineNum)
-test.modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
-# print('p2，改了BestHistory的尺寸，能否好一些？？？')
+random.seed(6)
+test = myPMBO1(3, 29, lotNum, lotSizes, machineNum)
+test.modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 30, muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
+# print('p2，popsize为25')

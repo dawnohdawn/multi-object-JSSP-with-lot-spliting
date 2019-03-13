@@ -481,6 +481,9 @@ class generalIndividual:
                     availableType = [0, 1, 2, 3, 4, 5, 6]
                     neighbour = 'random'
                     neighbourType = availableType[random.randint(0, 6)]
+                elif neighbour == 's1&s2':
+                    neighbourType1 = random.randint(0, 3)
+                    neighbourType2 = random.randint(0, 4)
                 # 对该copy动手
                 if neighbour == 's1n1' or neighbour == 'random' and neighbourType == 0 or neighbour == 's1' and neighbourType == 0:
                     searchCopy.decode(solutionClassName)
@@ -506,13 +509,44 @@ class generalIndividual:
                     searchCopy.neighbourInverseLotsOfAMachine()
                     neighbour = 's2n4'
                 elif neighbour == 's1coarse' or neighbour == 'random' and neighbourType == 7 or neighbour == 'coarse' and neighbourType == 0\
-                        or neighbour == 's1' and neighbourType == '3':
+                        or neighbour == 's1' and neighbourType == 3:
                     searchCopy.coarseGrainNeibourS1()
                     neighbour = 's1coarse'
                 elif neighbour == 's2coarse' or neighbour == 'random' and neighbourType == 8 or neighbour == 'coarse' and neighbourType == 1\
-                        or neighbour == 's2' and neighbourType == '4':
+                        or neighbour == 's2' and neighbourType == 4:
                     searchCopy.coarseGrainNeibourS2()
                     neighbour = 's2coarse'
+                elif neighbour == 's1&s2':
+                    if neighbourType1 == 0:
+                        searchCopy.decode(solutionClassName)
+                        searchCopy.neighourLastSublotResize()
+                        neighbour = 's1n1'
+                    elif neighbourType1 == 1:
+                        searchCopy.neighbourResizeTwoSublot()
+                        neighbour = 's1n2'
+                    elif neighbourType1 == 2:
+                        searchCopy.nerghbourIncreaseOrDecreaseASublotNum()
+                        neighbour = 's1n1'
+                    elif neighbourType1 == 3:
+                        searchCopy.coarseGrainNeibourS1()
+                        neighbour = 's1coarse'
+                    if neighbourType2 == 0:
+                        searchCopy.decode(solutionClassName)
+                        searchCopy.neighbourLastLotPreferenceAdvance()
+                        neighbour = 's2n1'
+                    elif neighbourType2 == 1:
+                        searchCopy.neighbourRepositionALot()
+                        neighbour = 's2n2'
+                    elif neighbourType2 == 2:
+                        searchCopy.neighbourSwapTwoLotsOfAMachine()
+                        neighbour = 's2n3'
+                    elif neighbourType2 == 3:
+                        searchCopy.neighbourInverseLotsOfAMachine()
+                        neighbour = 's2n4'
+                    elif neighbourType2 == 4:
+                        searchCopy.coarseGrainNeibourS2()
+                        neighbour = 's2coarse'
+
             # 解码，加入集合
             searchCopy.decode(solutionClassName)
             individualList.append(searchCopy)

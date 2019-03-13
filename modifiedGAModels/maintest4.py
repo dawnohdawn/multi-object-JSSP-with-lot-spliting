@@ -12,7 +12,7 @@ from myPMBO2 import myPMBO1
 
 print('构建')
 myMBO1Test = myMBO1(51, lotNum, lotSizes, machineNum)
-myPMBO1Test = myPMBO1(3, 17, lotNum, lotSizes, machineNum)
+myPMBO1Test = myPMBO1(3, 29, lotNum, lotSizes, machineNum)
 originalMBOTest = originalMBO(51, lotNum, lotSizes, machineNum)
 originalMBO_newNeighboursTest = originalMBO_newNeighbours(51, lotNum, lotSizes, machineNum)
 originalIMGATest = originalIMGA(3, 18, lotNum, lotSizes, machineNum)
@@ -22,8 +22,8 @@ HGATest = HGA(52, lotNum, lotSizes, machineNum)
 
 
 print('跑多遍')
-test = comparisonsOfAlgorithms([myMBO1Test, myPMBO1Test])
-test.runManyTimes(5)
+test = comparisonsOfAlgorithms([myPMBO1Test])
+test.runManyTimes(7)
 
 # print('收敛曲线')
 # test = comparisonsOfAlgorithms([myMBO1Test])
@@ -35,7 +35,7 @@ print('p{}，{}，1000iter跑5次'.format(problemInd, [item.name for item in tes
 
 
 """
-result = np.array(list(test.makespans.myMBO1)) 
+result = np.array(list(test.makespans.myPMBO1)) 
 result.mean()
 result.std()
 result.min()
