@@ -23,7 +23,7 @@ HGATest = HGA(52, lotNum, lotSizes, machineNum)
 
 print('跑多遍')
 test = comparisonsOfAlgorithms([myPMBO1Test])
-test.runManyTimes(7)
+test.runManyTimes(20)
 
 # print('收敛曲线')
 # test = comparisonsOfAlgorithms([myMBO1Test])
@@ -31,7 +31,7 @@ test.runManyTimes(7)
 # # test = comparisonsOfAlgorithms([myMBO1Test])
 # test.plotOneRun('myMBO1+aging-P1')
 
-print('p{}，{}，1000iter跑5次'.format(problemInd, [item.name for item in test.algorithms]))
+print('p{}，{}，PCCMBO，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
 
 
 """
