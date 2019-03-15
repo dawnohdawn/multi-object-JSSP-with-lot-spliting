@@ -31,7 +31,7 @@ test.runManyTimes(20)
 # # test = comparisonsOfAlgorithms([myMBO1Test])
 # test.plotOneRun('myMBO1+aging-P1')
 
-print('p{}，{}，PCCMBO，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
+print('p{}，{}，PCCMBO+aging机制，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
 
 
 """

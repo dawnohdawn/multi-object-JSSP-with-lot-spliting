@@ -46,7 +46,7 @@ class comparisonsOfAlgorithms:
             for algorithmInd in range(self.algorithmNum):
                 print('run:', runInd, self.algorithms[algorithmInd].name)
                 # 设置seed，保证每个算法在同一个循环中都是相同的seed
-                random.seed(runInd+10)
+                random.seed(runInd)
                 print('set seed {}'.format(runInd))
                 # 注意不同的对象要使用不同的操作
                 if self.algorithms[algorithmInd].name.startswith('originalMBO'):

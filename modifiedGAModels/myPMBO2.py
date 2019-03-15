@@ -707,17 +707,17 @@ class myPMBO1:
                     self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging = 0, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
                 elif popInd == 1:
                     self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=0, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
                 elif popInd == 2:
                     self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=0, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
                 print(self.model[popInd].getMakespansOfAllIndividuals())
                 # print(self.model[popInd].age)
 
