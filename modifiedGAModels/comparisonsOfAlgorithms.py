@@ -106,6 +106,15 @@ class comparisonsOfAlgorithms:
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('PMBO1'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetModel()
+                    self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 10, 0, 'exchange', 20, muteEveryMBOIter=1, \
+                                                               muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespanAmongAllPops())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespanAmongAllPops(),
+                                           self.algorithms[algorithmInd].getBestIndividualCodes()])
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
 
@@ -132,7 +141,9 @@ class comparisonsOfAlgorithms:
             self.oneRunData = pd.DataFrame(columns=self.columnNames)
 
         # 让每个算法都是用相同的random seed
-        np.random.seed(3)
+        sed = 11
+        np.random.seed(sed)
+        print(sed)
         for algorithmInd in range(self.algorithmNum):
             if self.algorithms[algorithmInd].name.startswith('originalMBO'):
                 self.algorithms[algorithmInd].iterate(1000, 3, 1, 10, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
@@ -148,6 +159,12 @@ class comparisonsOfAlgorithms:
                 #     "bestMakespan"]
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].details. \
                 set_index(["iter"])['bestMakespan']
+            elif self.algorithms[algorithmInd].name.startswith('myPMBO1'):
+                self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, \
+                                                           muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0,
+                                                           saveDetailsUsingDF=1)
+                self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel["bestMakespan"]
+
         # 存储收敛图像
         self.oneRunData.plot()
         plt.savefig(PATH + "\\convergeData\\" + fileName + '.png', dpi=160)

@@ -3,8 +3,6 @@ from generalSolution import generalSolution
 from generalIndividual import generalIndividual
 from generalPopulation import generalPopulation
 
-# 这个版本的写坏了，不要了
-
 
 #################################
 # 以下是单种群类
@@ -35,7 +33,6 @@ class myMBO(generalPopulation):
         """
         功能：              简单GA迭代，可对同一个population对象连续使用
                             首次使用应把needcalAllMakespan设为1，后面应设为0以减少重复计算
-
         输入：
         iterNum             迭代次数
         K                   the number of neighbor solutions to be considered
@@ -48,13 +45,11 @@ class myMBO(generalPopulation):
         needcalAllMakespan  在循环迭代之前是否需要计算全部个体的makespan，默认为1
         muteEveryIter       如果为0，打印每次迭代种群中最好makespan
         muteResult          如果为0，打印迭代结束后最好makespan
-
         可选输入：
         kw['startIter']            输出的迭代代数从此号码开始，如果不指定就从0开始
         kw['saveDetailsUsingDF']   是否把每一代的最好makespan都记录在一个DataFrame即self.details
         kw['aging']                如果为1，则记录每个个体的年龄，在队形调整阶段根据年龄使用不同邻域算子
         kw['needReinitializeAge']  如果为1，则在本函数内对age重新初始化
-
         注意：
         MBO的popsize一定要设为奇数
         """
@@ -64,7 +59,6 @@ class myMBO(generalPopulation):
             """
             功能：
             对pop所有鸟进行模糊排序，构建V字形的领头鸟，左右翼跟随鸟
-
             输出：
             领头鸟号
             左翼跟随鸟序号,list
@@ -83,8 +77,25 @@ class myMBO(generalPopulation):
             return leaderind, leftWingind, rightWingind
 
 
+        def randomReshape():
+            """
+            功能：
+            对pop所有鸟随机生成V字型
+            输出：
+            领头鸟号
+            左翼跟随鸟序号,list
+            右翼跟随鸟序号,list
+            """
+            allIndexs = [i for i in range(self.popSize)]
+            random.shuffle(allIndexs)
+            leaderInd = allIndexs[0]
+            leftWingInd = allIndexs[1: int((self.popSize - 1) / 2 +1)]
+            rightWingInd = allIndexs[int((self.popSize - 1) / 2 +1) :]
+
+
         # 定义aging几个阈值
-        agingThreshold = [10, 40, 50]
+        agingThreshold = [10, 30, 40, 50]
+        # agingThreshold = [10, 40, 50]
         # agingThreshold = [10, 30, 40]
         # print('agingThreshold:', agingThreshold)
 
@@ -93,7 +104,6 @@ class myMBO(generalPopulation):
             """
             功能：
             随机返回bestHistory里面一个个体
-
             注意：
             调用本函数的时候，注意用深copy
             """
@@ -107,10 +117,8 @@ class myMBO(generalPopulation):
             """
             功能：
             根据个体的age，返回应该使用的neighbourSearch参数
-
             输入：
             birdAge      一只鸟的age
-
             输出：
             para1        steps
             para2        searchTimes
@@ -124,8 +132,9 @@ class myMBO(generalPopulation):
                     return [1, 1]
                 elif birdAge >= agingThreshold[0] and birdAge < agingThreshold[1]:
                     return [1, 2]
-                elif birdAge >= agingThreshold[1]:
-                    # return [2, 2]
+                elif birdAge >= agingThreshold[1] and birdAge < agingThreshold[2]:
+                    return [2, 2]
+                elif birdAge >= agingThreshold[2]:
                     return [1, 2]
 
 
@@ -133,11 +142,9 @@ class myMBO(generalPopulation):
             """
             功能：
             当个体有进步的时候，根据个体的age，使用该函数更新ageFlag
-
             输入：
             birdAge      一只鸟的age
             mode         要么是succeed，要么是fail
-
             注意：
             本函数不适用于丢弃时ageFlag的更新
             """
@@ -169,7 +176,17 @@ class myMBO(generalPopulation):
             self.age = [0 for _ in range(self.popSize)]
 
         # 构建模糊V字队形
-        leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+        # leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+        # 构建V字队形
+        leaderInd = random.randint(0, self.popSize - 1)  # 领头鸟
+        leftWingInd = []  # 左翼序号
+        rightWingInd = []  # 右翼序号
+        followerInd = list(range(self.popSize))  # 左右翼可选的序号
+        followerInd.remove(leaderInd)
+        random.shuffle(followerInd)
+        for i in range(int(len(followerInd) / 2)):
+            leftWingInd.append(followerInd[2 * i])
+            rightWingInd.append(followerInd[2 * i + 1])
 
         for intervalInd in range(int (iterNum / (M + A))):
             # 一轮interval开始，一轮interval包含(M + A)个iter
@@ -199,81 +216,125 @@ class myMBO(generalPopulation):
                 leaderNei = []
                 leaderNeiMakespan = []
                 # 生成K个邻域解
+                # for _ in range(K):
+                #     para = returnNeighbourFunctionRarameterByAging(self.age[leaderInd])
+                #     tempBird = self.pop[leaderInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace = 0)
+                #     leaderNei.append(tempBird)
+                #     leaderNeiMakespan.append(tempBird.makespan)
+                #     # 更新ageFlag
+                #     if min(leaderNeiMakespan) < self.pop[leaderInd].makespan:
+                #         updatAgeFlag(self.age[leaderInd], mode = 'succeed')
+                #     else:
+                #         updatAgeFlag(self.age[leaderInd], mode='fail')
+                # # 选出最好的邻域解，与领头鸟择优，更新年龄
+                # if min(leaderNeiMakespan) <= self.pop[leaderInd].makespan:
+                #     self.age[leaderInd] = 0
+                #     bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
+                #     bestNei = leaderNei[bestNeiInd]
+                #     newPop[leaderInd] = copy.deepcopy(bestNei)
+                # else:
+                #     self.age[leaderInd] += 1
+                # 先生成K个邻域解
                 for _ in range(K):
-                    para = returnNeighbourFunctionRarameterByAging(self.age[leaderInd])
-                    tempBird = self.pop[leaderInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace = 0)
+                    tempBird = self.pop[leaderInd].neighbourSearch('random_simple', 1, 1, self.solutionClassName,
+                                                                   inplace=0)
                     leaderNei.append(tempBird)
                     leaderNeiMakespan.append(tempBird.makespan)
-                    # 更新ageFlag
-                    if min(leaderNeiMakespan) < self.pop[leaderInd].makespan:
-                        updatAgeFlag(self.age[leaderInd], mode = 'succeed')
-                    else:
-                        updatAgeFlag(self.age[leaderInd], mode='fail')
-                # 选出最好的邻域解，与领头鸟择优，更新年龄
+                # 选出最好的邻域解，与领头鸟择优
                 if min(leaderNeiMakespan) <= self.pop[leaderInd].makespan:
-                    self.age[leaderInd] = 0
+                    # 替换领头鸟
                     bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
                     bestNei = leaderNei[bestNeiInd]
                     newPop[leaderInd] = copy.deepcopy(bestNei)
-                else:
-                    self.age[leaderInd] += 1
+                    # 删除替换的鸟，更新领头鸟邻域集以备跟随鸟使用
+                    del leaderNei[bestNeiInd]
+                    del leaderNeiMakespan[bestNeiInd]
 
                 # 左右翼跟随鸟更新
                 for wingInd in [leftWingInd, rightWingInd]:
                     for indOfWingInd, birdInd in enumerate(wingInd):
-                        # 先清空每一只鸟的邻域集
-                        wingNei = []
-                        wingNeiMakespan = []
-                        # 确定要向哪一只鸟学习
-                        if birdInd == wingInd[0]:  # 如果是第一只跟随鸟，就跟领头鸟交叉
-                            learnedBird = self.pop[leaderInd]
-                        else:  # 如果不是领头鸟，则跟前一只鸟交叉
-                            learnedBird = self.pop[wingInd[indOfWingInd - 1]]
+                        # 如果是第一只跟随鸟，就从领头鸟那里获得邻域解
+                        if birdInd == wingInd[0]:
+                            # 初始化跟随鸟邻域集，找出领头鸟最好的S个邻域解，加入邻域集
+                            bestAheadInd = getBestOrWorstIndexs('best', leaderNeiMakespan, S)
+                            wingNei = [leaderNei[i] for i in bestAheadInd]
+                            wingNeiMakespan = [leaderNeiMakespan[i] for i in bestAheadInd]
+                        # 生成该鸟的邻域解，加入邻域集
+                        for _ in range(K - S):
+                            tempBird = self.pop[birdInd].neighbourSearch('random_simple', 1, 1, self.solutionClassName,
+                                                                         inplace=0)
+                            wingNei.append(tempBird)
+                            wingNeiMakespan.append(tempBird.makespan)
+                        # 选出最好的邻域解，与该鸟择优
+                        if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                            # 替换该鸟
+                            bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                            bestNei = wingNei[bestNeiInd]
+                            newPop[birdInd] = copy.deepcopy(bestNei)
+                            # 删除替换的鸟，更新邻域集以备下一只鸟使用
+                            del wingNei[bestNeiInd]
+                            del wingNeiMakespan[bestNeiInd]
+                            # 将邻域解最好的S个解保留，其他删掉
+                            bestAheadInd = getBestOrWorstIndexs('best', wingNeiMakespan, S)
+                            wingNei = [i for j, i in enumerate(wingNei) if j in bestAheadInd]
+                            wingNeiMakespan = [i for j, i in enumerate(wingNeiMakespan) if j in bestAheadInd]
 
-                        # 下面分情况
-                        # 情况1，不使用aging，或者使用aging且该个体尚年轻
-                        if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] < agingThreshold[2]:
-                            # 判断个体是否需要退化
-                            if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[1] and needDescend == 1:
-                                descendIndividual = returnAnIndividualFromBestHistory()
-                                if descendIndividual.makespan > self.pop[birdInd].makespan:
-                                    print('age',self.age[birdInd],'descend', self.pop[birdInd].makespan)
-                                    self.pop[birdInd] = copy.deepcopy(descendIndividual)
-                                    print('to', self.pop[birdInd].makespan)
-                            # 交叉S次，分别挑最好的解加入邻域集
-                            for _ in range(S):
-                                chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
-                                wingNei.append(chosenChild)
-                                wingNeiMakespan.append(chosenChild.makespan)
-                            # 生成该鸟的邻域解，加入邻域集
-                            for _ in range(K - S):
-                                para = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
-                                tempBird = self.pop[birdInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace=0)
-                                wingNei.append(tempBird)
-                                wingNeiMakespan.append(tempBird.makespan)
-                                # 更新ageFlag
-                                if tempBird.makespan < self.pop[birdInd].makespan:
-                                    updatAgeFlag(self.age[birdInd], mode = 'succeed')
-                                else:
-                                    updatAgeFlag(self.age[birdInd], mode='fail')
-                            # 选出最好的邻域解，与该鸟择优
-                            # 如果<=了，替换
-                            if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                                bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
-                                bestNei = wingNei[bestNeiInd]
-                                newPop[birdInd] = copy.deepcopy(bestNei)
-                            # 更新年龄
-                            if min(wingNeiMakespan) < self.pop[birdInd].makespan:
-                                self.age[birdInd] = 0
-                            else:
-                                self.age[birdInd] += 1
-                        # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
-                        else:
-                            newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
-                            # 记录aging策略成功次数
-                            ageFlag[-1][1] += 1
-                            # 更新年龄
-                            self.age[birdInd] = 0
+                        # 先清空每一只鸟的邻域集
+                        # wingNei = []
+                        # wingNeiMakespan = []
+                        # # 确定要向哪一只鸟学习
+                        # if birdInd == wingInd[0]:  # 如果是第一只跟随鸟，就跟领头鸟交叉
+                        #     learnedBird = self.pop[leaderInd]
+                        # else:  # 如果不是领头鸟，则跟前一只鸟交叉
+                        #     learnedBird = self.pop[wingInd[indOfWingInd - 1]]
+                        #
+                        # # 下面分情况
+                        # # 情况1，不使用aging，或者使用aging且该个体尚年轻
+                        # if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] < agingThreshold[3]:
+                        #     # 判断个体是否需要退化
+                        #     # if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[1] and outerIterInd >= int(outerIterNum/3)+1:
+                        #     if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[2] and needDescend == 1:
+                        #         descendIndividual = returnAnIndividualFromBestHistory()
+                        #         if descendIndividual.makespan > self.pop[birdInd].makespan:
+                        #             print('age',self.age[birdInd],'descend', self.pop[birdInd].makespan)
+                        #             self.pop[birdInd] = copy.deepcopy(descendIndividual)
+                        #             print('to', self.pop[birdInd].makespan)
+                        #     # 交叉S次，分别挑最好的解加入邻域集
+                        #     for _ in range(S):
+                        #         chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
+                        #         wingNei.append(chosenChild)
+                        #         wingNeiMakespan.append(chosenChild.makespan)
+                        #     # 生成该鸟的邻域解，加入邻域集
+                        #     for _ in range(K - S):
+                        #         para = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
+                        #         tempBird = self.pop[birdInd].neighbourSearch(neighbourSearchMode, para[0], para[1], self.solutionClassName, inplace=0)
+                        #         wingNei.append(tempBird)
+                        #         wingNeiMakespan.append(tempBird.makespan)
+                        #         # 更新ageFlag
+                        #         if tempBird.makespan < self.pop[birdInd].makespan:
+                        #             updatAgeFlag(self.age[birdInd], mode = 'succeed')
+                        #         else:
+                        #             updatAgeFlag(self.age[birdInd], mode='fail')
+                        #     # 选出最好的邻域解，与该鸟择优
+                        #     # 如果<=了，替换
+                        #     if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                        #         bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                        #         bestNei = wingNei[bestNeiInd]
+                        #         newPop[birdInd] = copy.deepcopy(bestNei)
+                        #     # 更新年龄
+                        #     if min(wingNeiMakespan) < self.pop[birdInd].makespan:
+                        #         self.age[birdInd] = 0
+                        #     else:
+                        #         self.age[birdInd] += 1
+                        # # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
+                        # else:
+                        #     # print('reset bird from', newPop[birdInd].makespan)
+                        #     newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
+                        #     # 记录aging策略成功次数
+                        #     ageFlag[-1][1] += 1
+                        #     # 更新年龄
+                        #     self.age[birdInd] = 0
+                        #     # print('to', newPop[birdInd].makespan)
 
                 # 每个iter后的例行公事
                 # 一个iter完成，将生成好的newPop深复制给pop
@@ -323,10 +384,10 @@ class myMBO(generalPopulation):
                     learnedBird = self.pop[random.randint(0, self.popSize - 1)]
                     # 下面分情况
                     # 情况1，不使用aging，或者使用aging且该个体尚年轻
-                    if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and needDescend == 1:
+                    if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] < agingThreshold[3]:
                         # 判断个体是否需要退化
-                        if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[
-                            1] and outerIterInd >= int(outerIterNum / 3) + 1:
+                        # if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[1] and outerIterInd >= int(outerIterNum / 3) + 1:
+                        if 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] == agingThreshold[2] and needDescend == 1:
                             descendIndividual = returnAnIndividualFromBestHistory()
                             if descendIndividual.makespan > self.pop[birdInd].makespan:
                                 print('age', self.age[birdInd], 'descend', self.pop[birdInd].makespan)
@@ -361,12 +422,13 @@ class myMBO(generalPopulation):
                             self.age[birdInd] += 1
                     # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
                     else:
+                        # print('reset bird from', newPop[birdInd].makespan)
                         newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
                         # 记录aging策略成功次数
                         ageFlag[-1][1] += 1
                         # 更新年龄
                         self.age[birdInd] = 0
-                        # print('reset bird')
+                        # print('to', newPop[birdInd].makespan)
 
 
 
@@ -390,7 +452,16 @@ class myMBO(generalPopulation):
 
 
             # 变换队形，重新构建模糊V字队形
-            leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+            # leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+            # 变换队形，把领头鸟退到队尾
+            if newPop[leftWingInd[0]].makespan < newPop[rightWingInd[0]].makespan:
+                leftWingInd.append(leaderInd)
+                leaderInd = leftWingInd[0]
+                del leftWingInd[0]
+            else:
+                rightWingInd.append(leaderInd)
+                leaderInd = rightWingInd[0]
+                del rightWingInd[0]
 
 
         if muteResult == 0:
@@ -409,7 +480,7 @@ class myMBO(generalPopulation):
 # 以下是多种群类
 #################################
 
-class myPMBO_trash:
+class PMBO1:
     """
     成员变量：
     self.modelSize       有多少个island（种群）
@@ -435,7 +506,7 @@ class myPMBO_trash:
 
         self.detailsOfModel = pd.DataFrame(columns=['pop', 'iter', 'outerIter', 'bestMakespan'])
 
-        self.name = 'myPMBO1'
+        self.name = 'PMBO1'
 
 
     def resetModel(self):
@@ -519,12 +590,10 @@ class myPMBO_trash:
     def getCertainIndividualOfPopulation(self, popInd, mode, choosePercentage, shuffle = 0):
         """
         功能：            返回某个种群部分个体在种群中的序号
-
         输入：
         popInd            种群序号
         mode              选择模式，可以是'best','worst',random'
         choosePercentage  选出choosePercentage%个个体，例如可以是10，30等
-
         输出：
         indexs            一个list，包含部分个体在种群中的序号
         shuffle           如果为1，则在best和worst模式下用shuffle模式，即排序与index脱钩
@@ -549,7 +618,6 @@ class myPMBO_trash:
     def getBestAndRamdomIndividualOfPopulation(self, popInd, choosePercentage, shuffle = 0):
         """
         功能：            返回某个种群最优和随机的个体
-
         输入：
         popInd            种群序号
         choosePercentage  最优个体和随机个体分别需要多少个
@@ -572,7 +640,6 @@ class myPMBO_trash:
     def migrateBetweenTwoPops(self, mode, popIndex1, popIndex2, individualIndexs1, individualIndexs2):
         """
         功能：              在两个种群之间迁移
-
         输入：
         mode                模式，可以是'replace'，或者是'exchange'
         popIndex1           第一个种群序号，如果模式是'replace'，则为源种群序号
@@ -599,7 +666,6 @@ class myPMBO_trash:
     def migrationOfAllPops(self, mode, choosePercentage):
         """
         功能:              所有种群进行迁移
-
         输入：
         mode               模式，可以是'replace'，或者是'exchange'
         choosePercentage   选出choosePercentage%个个体，例如可以是10，30等
@@ -610,8 +676,9 @@ class myPMBO_trash:
             # migrateIndexs.append(
             #     [self.getCertainIndividualOfPopulation(i, mode='best', choosePercentage=choosePercentage), \
                  # self.getCertainIndividualOfPopulation(i, mode='worst', choosePercentage=choosePercentage)])
-            # migrateIndexs.append(self.getBestAndRamdomIndividualOfPopulation(i, choosePercentage=choosePercentage))
             migrateIndexs.append(self.getBestAndRamdomIndividualOfPopulation(i, choosePercentage=choosePercentage, shuffle=1))
+            # migrateIndexs.append(self.getBestAndRamdomIndividualOfPopulation(i, choosePercentage=choosePercentage))
+
 
         # 三个种群按照0-1,1-2,2-0的顺序migration
         for i in range(self.modelSize):
@@ -619,13 +686,43 @@ class myPMBO_trash:
             toPop = (i + 1) % self.modelSize
             self.migrateBetweenTwoPops(mode, fromPop, toPop, migrateIndexs[fromPop][0], migrateIndexs[toPop][1])
 
+    def getTwoGroupsOfWorstIndividual(self, popInd, choosePercentage, shuffle = 0):
+        """
+        功能:             返回两组最差个体，随机分组
+        输入：
+        popInd            种群序号
+        choosePercentage  最差个体和最差个体分别需要多少个
+        """
+        # 先确定分别要选多少个best和random个体
+        chooseNum = int(choosePercentage * self.popSize / 100.0)
+
+        # 选出最好的个体
+        makespanList = [self.model[popInd].pop[i].makespan for i in range(self.popSize)]
+        bestIndexs = getBestOrWorstIndexs('worst', makespanList, chooseNum * 2, shuffle = shuffle)
+
+        # 随机分成两组
+        random.shuffle(bestIndexs)
+        bestIndexs1 = bestIndexs[:chooseNum]
+        bestIndexs2 = bestIndexs[chooseNum:]
+
+        return bestIndexs1, bestIndexs2
+
+
+    def migrationOfAllPops2(self, mode, choosePercentage):
+        pop0Worst1, pop0Worst2 = self.getTwoGroupsOfWorstIndividual(0, choosePercentage=choosePercentage)
+        pop1Best, pop1Random = self.getBestAndRamdomIndividualOfPopulation(1, choosePercentage=choosePercentage)
+        pop2Best, pop2Random = self.getBestAndRamdomIndividualOfPopulation(2, choosePercentage=choosePercentage)
+
+        self.migrateBetweenTwoPops(mode, 0, 1, pop0Worst1, pop1Best)
+        self.migrateBetweenTwoPops(mode, 0, 2, pop0Worst2, pop2Best)
+        self.migrateBetweenTwoPops(mode, 1, 2, pop1Random, pop2Random)
+
 
     def modelIterate(self, outerIterNum, innerIterNum, K, S, M, A, mode, migratePercentage, \
                      muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, **kw):
 
         """
         功能：                      使用简单GA迭代来构建IMGA的迭代
-
         输入：
         outerIterNum                模型要进行多少次migrate
         innerIterNum                每多少个iter就要migrate一次，innerIterNum应该是(M+A)的倍数
@@ -638,7 +735,6 @@ class myPMBO_trash:
         muteGAResult                如果为0，打印inner迭代结束后最好makespan
         muteEveryOuterIter          如果为0，打印每次outer迭代种群中最好makespan
         muteOuterResult             如果为0，打印outer迭代结束后最好makespan
-
         可选输入：
         kw['saveDetailsUsingDF']   是否生成一个DataFrame来记录详细结果
         """
@@ -651,7 +747,8 @@ class myPMBO_trash:
 
         # 创建并初始化BestHistory记录历史个体，只记录6个最好的makespan的分别10个个体
         # 记录所有pop里面所有个体makespan
-        maxBestLen = 6
+        maxBestLen = 10
+        maxBestNum = 20
         allMakespans = self.getMakespansOfAllIndividualsInOneList()
         # makespan去重
         uniqueMakespans = set(allMakespans)
@@ -667,7 +764,7 @@ class myPMBO_trash:
         # 找到这6个makespan的各自10个个体
         for i in range(len(minMakespans)):
             for j in range(len(allMakespans)):
-                if minMakespans[i] == allMakespans[j] and len(self.bestHistory[minMakespans[i]]) < 10:
+                if minMakespans[i] == allMakespans[j] and len(self.bestHistory[minMakespans[i]]) < maxBestNum:
                     self.bestHistory[minMakespans[i]].append(copy.deepcopy(self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
         print(self.bestHistory)
 
@@ -677,25 +774,26 @@ class myPMBO_trash:
 
             # 内部迭代，三个pop更新
             for popInd in range(self.modelSize):
+                # print('descendFlag:',descendFlag)
                 # GA
                 if 'saveDetailsUsingDF' in kw.keys() and kw['saveDetailsUsingDF'] == 1:
                     saveDetailsUsingDF = kw['saveDetailsUsingDF']
                 # 三个种群分化进化
                 if popInd == 0:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random_simple', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging = 1, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
                 elif popInd == 1:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random_simple', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
                 elif popInd == 2:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's2', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random_simple', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
-                                               saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
+                                               saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
                 print(self.model[popInd].getMakespansOfAllIndividuals())
                 # print(self.model[popInd].age)
 
@@ -704,63 +802,6 @@ class myPMBO_trash:
                     self.model[popInd].details['pop'] = popInd
                     self.model[popInd].details['outerIter'] = outerIterInd
                     self.detailsOfModel = self.detailsOfModel.append(self.model[popInd].details, ignore_index=True)
-
-            # 判断是否需要退化
-            descendFlag = 0
-            allMakespans = self.getMakespansOfAllIndividualsInOneList()
-            minMakespanCnt = allMakespans.count(min(allMakespans))
-            if minMakespanCnt >= len(allMakespans) / 3:
-                print('descend',self.bestHistory.keys())
-                descendFlag = 1
-                # 更新一次bestHistory
-                allMakespans = self.getMakespansOfAllIndividualsInOneList()
-                # makespan去重
-                uniqueMakespans = set(allMakespans)
-                # 找到最小的6个makespan
-                minMakespans = list(uniqueMakespans)
-                minMakespans.sort()
-                if len(minMakespans) > 6:
-                    minMakespans = minMakespans[:6]
-                # 更新key
-                addMakespan = sorted((set(minMakespans) - set(self.bestHistory.keys())))
-                outMakespan = sorted(list(set(self.bestHistory.keys()) - set(minMakespans)))
-                if len(addMakespan) == 0:  # 如果addMakespan是空的，说明不需要更新key了
-                    outMakespan = []
-                else:  # 如果addMakespan不是空的，说明要更新key
-                    for additem in addMakespan:
-                        for outitem in outMakespan:
-                            if additem > outitem:
-                                addMakespan.remove(additem)
-                                outMakespan.remove(min(outMakespan))
-                                break
-                    for item in outMakespan:
-                        del self.bestHistory[item]
-                    for item in addMakespan:
-                        self.bestHistory[item] = []
-                # delcnt = 0
-                # keys = sorted(list(self.bestHistory.keys()))
-                # for i in range(len(minMakespans)):
-                #     print('i=', i, 'minMakespans=', minMakespans, 'keys=', keys)
-                #     if minMakespans[i] < keys[delcnt]:
-                #         del self.bestHistory[keys[-1-i]]
-                #         self.bestHistory[minMakespans[i]] = []
-                #         delcnt += 1
-                # 更新values
-                minMakespans = sorted(list(self.bestHistory.keys()))
-                for i in range(len(minMakespans)):
-                    for j in range(len(allMakespans)):
-                        if minMakespans[i] == allMakespans[j]:
-                            # 如果还不够10个
-                            if len(self.bestHistory[minMakespans[i]]) < 10 and random.random() < 0.2 or len(self.bestHistory[minMakespans[i]]) == 0:
-                                self.bestHistory[minMakespans[i]].append(
-                                    copy.deepcopy(self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
-                            # 如果已经超过10个
-                            elif len(self.bestHistory[minMakespans[i]]) >= 10 and random.random() < 0.2:
-                                delpos = random.randint(0, 9)
-                                del self.bestHistory[minMakespans[i]][delpos]
-                                self.bestHistory[minMakespans[i]].append(
-                                    copy.deepcopy(self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
-                print(self.bestHistory.keys())
 
             # 打印完整外部迭代一代后的结果
             if muteEveryOuterIter == 0:
@@ -783,14 +824,13 @@ class myPMBO_trash:
     def decodeAFixedIndividual(self, codeLists):
         """
         功能：       输入三条编码，观察解码过程，并生成甘特图
-
         输入：
         codeLists    为一个list，里面放着三条编码
         """
         self.model[0].decodeAFixedIndividual(codeLists)
 
 
-
-test = myPMBO1(3, 17, lotNum, lotSizes, machineNum)
-test.modelIterate(10, 10, 3, 1, 8, 2, 'exchange', 0.2, 0.1, 20, muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
-print('p2，选择个体的函数加入了shuffle，或许会提高后期跳出局部最优的能力')
+# random.seed(6)
+# test = PMBO1(3, 29, lotNum, lotSizes, machineNum)
+# test.modelIterate(100, 10, 3, 1, 10, 0, 'exchange', 30, muteEveryMBOIter=1, muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
+# print('p2，popsize为25')
