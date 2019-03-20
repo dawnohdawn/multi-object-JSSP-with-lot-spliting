@@ -152,7 +152,7 @@ class comparisonsOfAlgorithms:
                     set_index(["iter"])['bestMakespan']
             elif self.algorithms[algorithmInd].name.startswith('myMBO1'):
                 self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, \
-                                                  startIter=0, saveDetailsUsingDF=1, aging=1, needReinitializeAge=1)
+                                                  startIter=0, saveDetailsUsingDF=1, needReinitializeAge=1)
                 # self.algorithms[algorithmInd].iterate(1000, 3, 1, 8, 2, needcalAllMakespan=1, muteEveryIter=0,
                 #                                       muteResult=0, startIter=0, saveDetailsUsingDF=1)
                 # self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel[
@@ -163,6 +163,10 @@ class comparisonsOfAlgorithms:
                 self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 8, 2, 'exchange', 20, muteEveryMBOIter=1, \
                                                            muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0,
                                                            saveDetailsUsingDF=1)
+                self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel["bestMakespan"]
+            elif self.algorithms[algorithmInd].name.startswith('PMBO1'):
+                self.algorithms[algorithmInd].modelIterate(100, 10, 3, 1, 10, 0, 'exchange', 30, muteEveryMBOIter=1, \
+                                                           muteMBOResult=1, muteEveryOuterIter=0, muteOuterResult=0, saveDetailsUsingDF=1)
                 self.oneRunData[self.columnNames[algorithmInd]] = self.algorithms[algorithmInd].detailsOfModel["bestMakespan"]
 
         # 存储收敛图像

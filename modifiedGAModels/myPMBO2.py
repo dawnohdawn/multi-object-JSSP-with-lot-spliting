@@ -720,17 +720,17 @@ class myPMBO1:
                     saveDetailsUsingDF = kw['saveDetailsUsingDF']
                 # 三个种群分化进化
                 if popInd == 0:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1&s2', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
                 elif popInd == 1:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)
                 elif popInd == 2:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's2', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, aging=1, needReinitializeAge=0)

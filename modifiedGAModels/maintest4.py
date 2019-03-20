@@ -34,8 +34,8 @@ print('收敛曲线')
 test = comparisonsOfAlgorithms([myPMBO1Test])
 # test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
 # test = comparisonsOfAlgorithms([myMBO1Test])
-test.plotOneRun('PCCMBO+年龄机制-P{}'.format(problemInd))
-print('p{}，PCCMBO+年龄机制'.format(problemInd))
+test.plotOneRun('PCCMBO+stage-P{}'.format(problemInd))
+print('p{}，PCCMBO+stage'.format(problemInd))
 
 
 
