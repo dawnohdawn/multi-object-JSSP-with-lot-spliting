@@ -24,24 +24,24 @@ HGATest = HGA(52, lotNum, lotSizes, machineNum)
 
 
 # print('跑多遍')
-# # test = comparisonsOfAlgorithms([myPMBO1Test])
+test = comparisonsOfAlgorithms([myMBO1Test])
 # test = comparisonsOfAlgorithms([PMBO1Test])
-# test.runManyTimes(20)
-# print('p{}，{}，myPMBO1，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
+test.runManyTimes(20)
+print('p{}，{}，MBO+stage2，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
 
 
-print('收敛曲线')
-test = comparisonsOfAlgorithms([myPMBO1Test])
-# test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
-# test = comparisonsOfAlgorithms([myMBO1Test])
-test.plotOneRun('PCCMBO+stage-P{}'.format(problemInd))
-print('p{}，PCCMBO+stage'.format(problemInd))
+# print('收敛曲线')
+# # test = comparisonsOfAlgorithms([myPMBO1Test])
+# test = comparisonsOfAlgorithms([originalMBOTest])
+# # test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
+# test.plotOneRun('MBO+stage1-P{}'.format(problemInd))
+# print('p{}，MBO+stage1'.format(problemInd))
 
 
 
 
 """
-result = np.array(list(test.makespans.PMBO1)) 
+result = np.array(list(test.makespans.myMBO1)) 
 result.mean()
 result.std()
 result.min()

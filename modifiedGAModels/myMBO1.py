@@ -71,6 +71,41 @@ class myMBO1(generalPopulation):
             return leaderind, leftWingind, rightWingind
 
 
+        def VInitial():
+            """
+            仿照fuzzyVReshape写一个初始构建V字型的函数
+            """
+            indexs = [i for i in range(self.popSize)]
+            random.shuffle(indexs)
+            leaderind = indexs[0]
+            del indexs[0]
+            leftWingind = [indexs[i] for i in range(self.popSize - 1) if i % 2 == 0]
+            rightWingind = [indexs[i] for i in range(self.popSize - 1) if i % 2 == 1]
+
+            return leaderind, leftWingind, rightWingind
+
+
+        def VReshape(leaderind, leftWingind, rightWingind):
+            """
+            仿照fuzzyVReshape写一个调整V字型的函数
+            """
+            LeaderInd = copy.deepcopy(leaderind)
+            LeftWingInd = copy.deepcopy(leftWingind)
+            RightWingInd = copy.deepcopy(rightWingind)
+
+            if self.pop[LeftWingInd[0]].makespan < self.pop[RightWingInd[0]].makespan:
+                LeftWingInd.append(LeaderInd)
+                LeaderInd = LeftWingInd[0]
+                del LeftWingInd[0]
+            else:
+                RightWingInd.append(LeaderInd)
+                LeaderInd = RightWingInd[0]
+                del RightWingInd[0]
+
+            return LeaderInd, LeftWingInd, RightWingInd
+
+
+
         # 定义aging几个阈值
         # agingThreshold = [20, 40, 50]
         agingThreshold = [10, 30, 40]
@@ -147,7 +182,8 @@ class myMBO1(generalPopulation):
         self.history = [[] for _ in range(self.popSize)]
 
         # 构建模糊V字队形
-        leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+        # leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+        leaderInd, leftWingInd, rightWingInd = VInitial()
 
         for intervalInd in range(int (iterNum / (M + A))):
             # 一轮interval开始，一轮interval包含(M + A)个iter
@@ -196,55 +232,86 @@ class myMBO1(generalPopulation):
                 else:
                     self.age[leaderInd] += 1
 
+                # # 左右翼跟随鸟更新
+                # for wingInd in [leftWingInd, rightWingInd]:
+                #     for indOfWingInd, birdInd in enumerate(wingInd):
+                #         # 先清空每一只鸟的邻域集
+                #         wingNei = []
+                #         wingNeiMakespan = []
+                #         # 确定要向哪一只鸟学习
+                #         if birdInd == wingInd[0]:  # 如果是第一只跟随鸟，就跟领头鸟交叉
+                #             learnedBird = self.pop[leaderInd]
+                #         else:  # 如果不是领头鸟，则跟前一只鸟交叉
+                #             learnedBird = self.pop[wingInd[indOfWingInd - 1]]
+                #
+                #         # 下面分情况
+                #         # 情况1，不使用aging，或者使用aging且该个体尚年轻
+                #         if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] < agingThreshold[2]:
+                #             # 交叉S次，分别挑最好的解加入邻域集
+                #             for _ in range(S):
+                #                 chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
+                #                 wingNei.append(chosenChild)
+                #                 wingNeiMakespan.append(chosenChild.makespan)
+                #             # 生成该鸟的邻域解，加入邻域集
+                #             for _ in range(K - S):
+                #                 para = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
+                #                 tempBird = self.pop[birdInd].neighbourSearch('random', para[0], para[1], self.solutionClassName, inplace=0)
+                #                 wingNei.append(tempBird)
+                #                 wingNeiMakespan.append(tempBird.makespan)
+                #                 # 更新ageFlag
+                #                 if tempBird.makespan < self.pop[birdInd].makespan:
+                #                     updatAgeFlag(self.age[birdInd], mode = 'succeed')
+                #                 else:
+                #                     updatAgeFlag(self.age[birdInd], mode='fail')
+                #             # 选出最好的邻域解，与该鸟择优
+                #             # 如果<=了，替换
+                #             if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                #                 bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                #                 bestNei = wingNei[bestNeiInd]
+                #                 newPop[birdInd] = copy.deepcopy(bestNei)
+                #             # 更新年龄
+                #             if min(wingNeiMakespan) < self.pop[birdInd].makespan:
+                #                 self.age[birdInd] = 0
+                #             else:
+                #                 self.age[birdInd] += 1
+                #         # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
+                #         else:
+                #             newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
+                #             # 记录aging策略成功次数
+                #             ageFlag[-1][1] += 1
+                #             # 更新年龄
+                #             self.age[birdInd] = 0
+
                 # 左右翼跟随鸟更新
                 for wingInd in [leftWingInd, rightWingInd]:
-                    for indOfWingInd, birdInd in enumerate(wingInd):
-                        # 先清空每一只鸟的邻域集
-                        wingNei = []
-                        wingNeiMakespan = []
-                        # 确定要向哪一只鸟学习
-                        if birdInd == wingInd[0]:  # 如果是第一只跟随鸟，就跟领头鸟交叉
-                            learnedBird = self.pop[leaderInd]
-                        else:  # 如果不是领头鸟，则跟前一只鸟交叉
-                            learnedBird = self.pop[wingInd[indOfWingInd - 1]]
+                    for birdInd in wingInd:
+                        # 如果是第一只跟随鸟，就从领头鸟那里获得邻域解
+                        if birdInd == wingInd[0]:
+                            # 初始化跟随鸟邻域集，找出领头鸟最好的S个邻域解，加入邻域集
+                            bestAheadInd = getBestOrWorstIndexs('best', leaderNeiMakespan, S)
+                            wingNei = [leaderNei[i] for i in bestAheadInd]
+                            wingNeiMakespan = [leaderNeiMakespan[i] for i in bestAheadInd]
+                        # 生成该鸟的邻域解，加入邻域集
+                        for _ in range(K - S):
+                            tempBird = self.pop[birdInd].neighbourSearch('random_simple', 1, 1,
+                                                                         self.solutionClassName, inplace=0)
+                            wingNei.append(tempBird)
+                            wingNeiMakespan.append(tempBird.makespan)
+                        # 选出最好的邻域解，与该鸟择优
+                        if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                            # 替换该鸟
+                            bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                            bestNei = wingNei[bestNeiInd]
+                            newPop[birdInd] = copy.deepcopy(bestNei)
+                            # 删除替换的鸟，更新邻域集以备下一只鸟使用
+                            del wingNei[bestNeiInd]
+                            del wingNeiMakespan[bestNeiInd]
+                            # 将邻域解最好的S个解保留，其他删掉
+                            bestAheadInd = getBestOrWorstIndexs('best', wingNeiMakespan, S)
+                            wingNei = [i for j, i in enumerate(wingNei) if j in bestAheadInd]
+                            wingNeiMakespan = [i for j, i in enumerate(wingNeiMakespan) if
+                                               j in bestAheadInd]
 
-                        # 下面分情况
-                        # 情况1，不使用aging，或者使用aging且该个体尚年轻
-                        if 'aging' not in kw.keys() or 'aging' in kw.keys() and kw['aging'] == 1 and self.age[birdInd] < agingThreshold[2]:
-                            # 交叉S次，分别挑最好的解加入邻域集
-                            for _ in range(S):
-                                chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
-                                wingNei.append(chosenChild)
-                                wingNeiMakespan.append(chosenChild.makespan)
-                            # 生成该鸟的邻域解，加入邻域集
-                            for _ in range(K - S):
-                                para = returnNeighbourFunctionRarameterByAging(self.age[birdInd])
-                                tempBird = self.pop[birdInd].neighbourSearch('random', para[0], para[1], self.solutionClassName, inplace=0)
-                                wingNei.append(tempBird)
-                                wingNeiMakespan.append(tempBird.makespan)
-                                # 更新ageFlag
-                                if tempBird.makespan < self.pop[birdInd].makespan:
-                                    updatAgeFlag(self.age[birdInd], mode = 'succeed')
-                                else:
-                                    updatAgeFlag(self.age[birdInd], mode='fail')
-                            # 选出最好的邻域解，与该鸟择优
-                            # 如果<=了，替换
-                            if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                                bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
-                                bestNei = wingNei[bestNeiInd]
-                                newPop[birdInd] = copy.deepcopy(bestNei)
-                            # 更新年龄
-                            if min(wingNeiMakespan) < self.pop[birdInd].makespan:
-                                self.age[birdInd] = 0
-                            else:
-                                self.age[birdInd] += 1
-                        # 情况2：使用aging且该鸟年龄太大了，丢弃，重新初始化K个邻域解，挑最好的去替换该鸟
-                        else:
-                            newPop[birdInd] = copy.deepcopy(self.pop[birdInd].returnBestNewIndividuals(K, generalSolution))
-                            # 记录aging策略成功次数
-                            ageFlag[-1][1] += 1
-                            # 更新年龄
-                            self.age[birdInd] = 0
 
                 # 每个iter后的例行公事
                 # 一个iter完成，将生成好的newPop深复制给pop
@@ -351,7 +418,8 @@ class myMBO1(generalPopulation):
 
 
             # 变换队形，重新构建模糊V字队形
-            leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+            # leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
+            leaderInd, leftWingInd, rightWingInd = VReshape(leaderInd, leftWingInd, rightWingInd)
 
 
         if muteResult == 0:
@@ -365,7 +433,7 @@ class myMBO1(generalPopulation):
 
 
 # test = myMBO1(51, lotNum, lotSizes, machineNum)
-# test.iterate(1000, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1, aging=1, needReinitializeAge=1)
+# test.iterate(10, 3, 1, 8, 2, 0.2, 0.1, needcalAllMakespan=1, muteEveryIter=0, muteResult=0, startIter=0, saveDetailsUsingDF=1,  needReinitializeAge=1)
 
 # test.getBestIndividualCodes()
 # test.getMakespansOfAllIndividuals()

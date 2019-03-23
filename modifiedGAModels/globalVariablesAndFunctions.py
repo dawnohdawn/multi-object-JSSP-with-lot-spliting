@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 3
+problemInd = 2
 
 
 
@@ -235,6 +235,7 @@ machineNum = len(set(temp2))
 
 for i in range(machineNum):
     operationNumOfMachine.append(temp2.count(i))
+# print(temp1)
 
 # 限制每个lot的最大sublotNum
 maxLotNums = []

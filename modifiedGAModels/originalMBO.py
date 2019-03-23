@@ -40,6 +40,29 @@ class originalMBO(generalPopulation):
         注意：
         MBO的popsize一定要设为奇数
         """
+        def fuzzyVReshape():
+            """
+            功能：
+            对pop所有鸟进行模糊排序，构建V字形的领头鸟，左右翼跟随鸟
+
+            输出：
+            领头鸟号
+            左翼跟随鸟序号,list
+            右翼跟随鸟序号,list
+            """
+            # 生成被打乱的排序
+            indexMakespanDict =dict(zip(list(range(self.popSize)), self.getMakespansOfAllIndividuals()))
+            sortedIndex = [item[0] for item in sorted(indexMakespanDict.items(), key=lambda x: x[1], reverse=False)]
+            disturbedIndex = disturbList(sortedIndex, int(self.popSize * 0.25), int(self.popSize * 0.25))
+            # 安排领头鸟，左右翼跟随鸟
+            leaderind = disturbedIndex[0]
+            del disturbedIndex[0]
+            leftWingind = [disturbedIndex[i] for i in range(self.popSize -1) if i % 2 == 0]
+            rightWingind = [disturbedIndex[i] for i in range(self.popSize -1) if i % 2 == 1]
+
+            return leaderind, leftWingind, rightWingind
+
+
         progress = [0 for _ in range(iterNum)]
 
         # 第一代在此计算所有individual的makespan
@@ -50,15 +73,17 @@ class originalMBO(generalPopulation):
         self.details = pd.DataFrame(columns=['iter', 'bestMakespan'])
 
         # 构建V字队形
-        leaderInd = random.randint(0, self.popSize - 1)  # 领头鸟
-        leftWingInd = []  # 左翼序号
-        rightWingInd = []  # 右翼序号
-        followerInd = list(range(self.popSize))  # 左右翼可选的序号
-        followerInd.remove(leaderInd)
-        random.shuffle(followerInd)
-        for i in range(int(len(followerInd) / 2)):
-            leftWingInd.append(followerInd[2 * i])
-            rightWingInd.append(followerInd[2 * i + 1])
+        # leaderInd = random.randint(0, self.popSize - 1)  # 领头鸟
+        # leftWingInd = []  # 左翼序号
+        # rightWingInd = []  # 右翼序号
+        # followerInd = list(range(self.popSize))  # 左右翼可选的序号
+        # followerInd.remove(leaderInd)
+        # random.shuffle(followerInd)
+        # for i in range(int(len(followerInd) / 2)):
+        #     leftWingInd.append(followerInd[2 * i])
+        #     rightWingInd.append(followerInd[2 * i + 1])
+
+        leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
 
         # for intervalInd in range(intervalNum):
         for intervalInd in range(int (iterNum / M)):
@@ -146,14 +171,16 @@ class originalMBO(generalPopulation):
                         #             self.details.set_index(["iter"], inplace=True)
 
             # 变换队形，把领头鸟退到队尾
-            if newPop[leftWingInd[0]].makespan < newPop[rightWingInd[0]].makespan:
-                leftWingInd.append(leaderInd)
-                leaderInd = leftWingInd[0]
-                del leftWingInd[0]
-            else:
-                rightWingInd.append(leaderInd)
-                leaderInd = rightWingInd[0]
-                del rightWingInd[0]
+            # if newPop[leftWingInd[0]].makespan < newPop[rightWingInd[0]].makespan:
+            #     leftWingInd.append(leaderInd)
+            #     leaderInd = leftWingInd[0]
+            #     del leftWingInd[0]
+            # else:
+            #     rightWingInd.append(leaderInd)
+            #     leaderInd = rightWingInd[0]
+            #     del rightWingInd[0]
+
+            leaderInd, leftWingInd, rightWingInd = fuzzyVReshape()
 
         if muteResult == 0:
             print('result after %d iterations:' % iterNum, self.getBestMakespan())
