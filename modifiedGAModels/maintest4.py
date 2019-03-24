@@ -23,19 +23,19 @@ HGATest = HGA(52, lotNum, lotSizes, machineNum)
 
 
 
-# print('跑多遍')
+# # print('跑多遍')
+# test = comparisonsOfAlgorithms([myMBO1Test])
+# # test = comparisonsOfAlgorithms([PMBO1Test])
+# test.runManyTimes(20)
+# print('p{}，{}，MBO+stage2，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
+
+
+print('收敛曲线')
+# test = comparisonsOfAlgorithms([myPMBO1Test])
 test = comparisonsOfAlgorithms([myMBO1Test])
-# test = comparisonsOfAlgorithms([PMBO1Test])
-test.runManyTimes(20)
-print('p{}，{}，MBO+stage2，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
-
-
-# print('收敛曲线')
-# # test = comparisonsOfAlgorithms([myPMBO1Test])
-# test = comparisonsOfAlgorithms([originalMBOTest])
-# # test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
-# test.plotOneRun('MBO+stage1-P{}'.format(problemInd))
-# print('p{}，MBO+stage1'.format(problemInd))
+# test = comparisonsOfAlgorithms([originalMBO_newNeighboursTest])
+test.plotOneRun('MBO+adjust-P{}'.format(problemInd))
+print('p{}，MBO+adjust'.format(problemInd))
 
 
 

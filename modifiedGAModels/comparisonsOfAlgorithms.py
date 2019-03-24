@@ -141,7 +141,7 @@ class comparisonsOfAlgorithms:
             self.oneRunData = pd.DataFrame(columns=self.columnNames)
 
         # 让每个算法都是用相同的random seed
-        sed = 7
+        sed = 11
         np.random.seed(sed)
         print(sed)
         for algorithmInd in range(self.algorithmNum):
