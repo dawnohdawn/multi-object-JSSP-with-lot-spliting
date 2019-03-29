@@ -35,6 +35,8 @@ class singleLotSplitingVec:
         #         self.lotNum = random.randint(1, self.lotSize)  #
         if (self.lotSize > 100):
             self.sublotNum = random.randint(1, 2 * int(np.sqrt(100)))  # 超100的就不分那么多sublot了
+        # if (self.lotSize > 0):
+        #     self.sublotNum = 1  # 超100的就不分那么多sublot了
         else:
             self.sublotNum = random.randint(1, 2 * int(np.sqrt(self.lotSize)))
 
