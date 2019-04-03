@@ -720,17 +720,17 @@ class myPMBO1:
                     saveDetailsUsingDF = kw['saveDetailsUsingDF']
                 # 三个种群分化进化
                 if popInd == 0:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1&s2', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
                 elif popInd == 1:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's1', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
                 elif popInd == 2:
-                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 'random', 0.25, 0.25, needcalAllMakespan=0, \
+                    self.model[popInd].iterate(self.bestHistory, descendFlag, outerIterInd, outerIterNum, innerIterNum, K, S, M, A, 's2', 0.25, 0.25, needcalAllMakespan=0, \
                                                muteEveryIter=muteEveryMBOIter, muteResult=muteMBOResult, \
                                                startIter=outerIterInd * innerIterNum, \
                                                saveDetailsUsingDF=saveDetailsUsingDF, needReinitializeAge=0)
@@ -743,47 +743,47 @@ class myPMBO1:
                     self.model[popInd].details['outerIter'] = outerIterInd
                     self.detailsOfModel = self.detailsOfModel.append(self.model[popInd].details, ignore_index=True)
 
-            # # 判断是否要退化
-            # descendFlag = 0
-            # allMakespans = self.getMakespansOfAllIndividualsInOneList()
-            # minCnt = allMakespans.count(min(allMakespans))
-            # if minCnt >= len(allMakespans) / 3:
-            #     descendFlag = 1
-            #     print('descend!!!!!!!!!!!!', minCnt)
-            #     # 记录所有pop里面所有个体makespan
-            #     # if outerIterInd >= int(outerIterNum/3):
-            #     allMakespans = self.getMakespansOfAllIndividualsInOneList()
-            #     # makespan去重
-            #     uniqueMakespans = set(allMakespans)
-            #     # 找到最小的6个makespan
-            #     minMakespans = list(uniqueMakespans)
-            #     minMakespans.sort()
-            #     if len(minMakespans) > maxBestLen:
-            #         minMakespans = minMakespans[:maxBestLen]
-            #     # 更新key
-            #     for i in range(len(minMakespans)):
-            #         if minMakespans[i] not in list(self.bestHistory.keys()):
-            #             if minMakespans[i] < max(list(self.bestHistory.keys())):
-            #                 del self.bestHistory[max(list(self.bestHistory.keys()))]
-            #                 self.bestHistory[minMakespans[i]] = []
-            #     # 更新values
-            #     minMakespans = sorted(list(self.bestHistory.keys()))
-            #     for i in range(len(minMakespans)):
-            #         for j in range(len(allMakespans)):
-            #             if minMakespans[i] == allMakespans[j]:
-            #                 # 如果还不够10个
-            #                 if len(self.bestHistory[minMakespans[i]]) < maxBestNum and random.random() < 0.2 or len(self.bestHistory[minMakespans[i]]) == 0:
-            #                     self.bestHistory[minMakespans[i]].append(
-            #                         copy.deepcopy(
-            #                             self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
-            #                 # 如果已经超过10个
-            #                 elif len(self.bestHistory[minMakespans[i]]) >= maxBestNum and random.random() < 0.2:
-            #                     delpos = random.randint(0, maxBestNum - 1)
-            #                     del self.bestHistory[minMakespans[i]][delpos]
-            #                     self.bestHistory[minMakespans[i]].append(
-            #                         copy.deepcopy(
-            #                             self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
-            #     print(self.bestHistory.keys())
+            # 判断是否要退化
+            descendFlag = 0
+            allMakespans = self.getMakespansOfAllIndividualsInOneList()
+            minCnt = allMakespans.count(min(allMakespans))
+            if minCnt >= len(allMakespans) / 3:
+                descendFlag = 1
+                print('descend!!!!!!!!!!!!', minCnt)
+                # 记录所有pop里面所有个体makespan
+                # if outerIterInd >= int(outerIterNum/3):
+                allMakespans = self.getMakespansOfAllIndividualsInOneList()
+                # makespan去重
+                uniqueMakespans = set(allMakespans)
+                # 找到最小的6个makespan
+                minMakespans = list(uniqueMakespans)
+                minMakespans.sort()
+                if len(minMakespans) > maxBestLen:
+                    minMakespans = minMakespans[:maxBestLen]
+                # 更新key
+                for i in range(len(minMakespans)):
+                    if minMakespans[i] not in list(self.bestHistory.keys()):
+                        if minMakespans[i] < max(list(self.bestHistory.keys())):
+                            del self.bestHistory[max(list(self.bestHistory.keys()))]
+                            self.bestHistory[minMakespans[i]] = []
+                # 更新values
+                minMakespans = sorted(list(self.bestHistory.keys()))
+                for i in range(len(minMakespans)):
+                    for j in range(len(allMakespans)):
+                        if minMakespans[i] == allMakespans[j]:
+                            # 如果还不够10个
+                            if len(self.bestHistory[minMakespans[i]]) < maxBestNum and random.random() < 0.2 or len(self.bestHistory[minMakespans[i]]) == 0:
+                                self.bestHistory[minMakespans[i]].append(
+                                    copy.deepcopy(
+                                        self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
+                            # 如果已经超过10个
+                            elif len(self.bestHistory[minMakespans[i]]) >= maxBestNum and random.random() < 0.2:
+                                delpos = random.randint(0, maxBestNum - 1)
+                                del self.bestHistory[minMakespans[i]][delpos]
+                                self.bestHistory[minMakespans[i]].append(
+                                    copy.deepcopy(
+                                        self.model[int(j / self.popSize)].pop[int(j % self.popSize)]))
+                # print(self.bestHistory.keys())
 
             # 打印完整外部迭代一代后的结果
             if muteEveryOuterIter == 0:

@@ -24,10 +24,10 @@ HGATest = HGA(52, lotNum, lotSizes, machineNum)
 
 
 # print('跑多遍')
-test = comparisonsOfAlgorithms([originalMBOTest])
-# test = comparisonsOfAlgorithms([PMBO1Test])
+# test = comparisonsOfAlgorithms([myPMBO1Test])
+test = comparisonsOfAlgorithms([myMBO1Test])
 test.runManyTimes(1)
-print('p{}，{}，MBO+stage2，跑20次'.format(problemInd, [item.name for item in test.algorithms]))
+print('p{}，{}，PMBO1Test，跑2次'.format(problemInd, [item.name for item in test.algorithms]))
 
 
 # print('收敛曲线')
