@@ -119,7 +119,7 @@ class comparisonsOfAlgorithms:
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
 
-                print(self.algorithms[algorithmInd].getBestMakespanOfEveryPop())
+                # print(self.algorithms[algorithmInd].getBestMakespanOfEveryPop())
 
             self.makespans.loc[len(self.makespans)] = makespansOfThisRun
 
