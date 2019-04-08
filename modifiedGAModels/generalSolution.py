@@ -221,12 +221,25 @@ class generalSolution:
                 print('sublotOperationAssignment', self.sublotOperationAssignment)
                 print(' ')
 
+
         # 最后把多余的idlePeriods删掉，才能得到准确的idleMoment和idlePeriods
         for i in range(self.machineNum):
             if (len(self.machineList[i].idlePeriods) != 0):
                 if (self.machineList[i].idlePeriods[-1][-1] == self.machineList[i].idleMoment):
                     self.machineList[i].idleMoment = self.machineList[i].idlePeriods[-1][0]
                     del (self.machineList[i].idlePeriods[-1])
+
+        # 计算负载
+        loads = []
+        for i in Cmachine:
+            idle = 0
+            if len(self.machineList[i].idlePeriods) > 0:
+                for item in self.machineList[i].idlePeriods:
+                    idle += (item[1] - item[0])
+            loads.append(self.machineList[i].idleMoment - idle)
+        loads = np.array(loads)
+        self.loadStd = loads.std()
+        # print(self.loadStd)
 
 
     def printResults(self):
@@ -279,6 +292,9 @@ class generalSolution:
         返回完工时间
         """
         return max([item.idleMoment for item in self.machineList])
+
+    def getLoadStd(self):
+        return self.loadStd
 
 
     def generateGantTimetable(self, filename='gantData'):

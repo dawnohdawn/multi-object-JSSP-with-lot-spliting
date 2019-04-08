@@ -16,7 +16,7 @@ PATH = os.path.abspath('.')
 # 全局变量
 
 
-problemInd = 3
+problemInd = 1
 
 
 
@@ -43,6 +43,7 @@ if (problemInd == 0):
                            [{0: 9, 2: 7, 3: 9}, {1: 6, 3: 4, 5: 5}, {0: 1, 2: 3, 5: 3}]]
 
     lotSizes = [1, 1, 1, 1]
+    Cmachine = [0, 1, 2, 3, 4, 5]
 
 
 # P1：4X6问题，来自王海燕
@@ -58,6 +59,7 @@ if (problemInd == 1):
                            [{0: 9, 2: 7, 3: 9}, {1: 6, 3: 4, 5: 5}, {0: 1, 2: 3, 5: 3}]]
 
     lotSizes = [8, 8, 8, 8]
+    Cmachine = [0, 1, 2, 3, 4, 5]
 
 # P2：4X6问题，来自王海燕
 elif (problemInd == 2):

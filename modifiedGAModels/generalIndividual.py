@@ -250,6 +250,27 @@ class generalIndividual:
             return child2
 
 
+    def crossoverBetweenBothSegmentsReturnAllChild(self, indi2, p1, p2, solutionClassName):
+        """
+        功能：
+        同时对s1s2交叉，计算子代的makespan，并返回所有的子代
+
+        输入：
+        indi2       第二个父代
+        p1          s1交叉的选位概率
+        p2          s2交叉的选位概率
+        solutionClassName    用于decode的sulution类名字
+
+        输出：
+        优秀子代
+        """
+        child1, child2 = self.crossoverBetweenBothSegments(indi2, p1, p2, inplace=0)
+        child1.decode(solutionClassName)
+        child2.decode(solutionClassName)
+
+        return child1, child2
+
+
 
     def decode(self, solutionClassName):
         """
@@ -259,6 +280,7 @@ class generalIndividual:
         solu = solutionClassName(self)
         solu.run()
         self.makespan = solu.getMakespan()
+        self.loadStd = solu.getLoadStd()
 
         self.lastLotInd, self.lastSublotInd = solu.getLastFinishingSublot()
 
