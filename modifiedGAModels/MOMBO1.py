@@ -4,7 +4,7 @@ from generalSolution import generalSolution
 from globalVariablesAndFunctions import *
 
 
-class microMBO1(generalPopulation):
+class MOMBO1(generalPopulation):
     """
     继承generalPopulation得到
     """
@@ -13,9 +13,9 @@ class microMBO1(generalPopulation):
         """
         指定了individual类是generalIndividual，solution类是generalSolution
         """
-        super(microMBO1, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
+        super(MOMBO1, self).__init__(popSize, lotNum, lotSizes, machineNum, generalIndividual, generalSolution)
 
-        self.name = 'microMBO1'
+        self.name = 'MOMBO1'
 
 
         # 每个个体的年龄
@@ -53,9 +53,8 @@ class microMBO1(generalPopulation):
         RPMNum = 30
         NRPMNum = 10
         changePopInterval = 15
-        changePopRPMInterval = 25
+        changePopRPMInterval = 10
         changePopNRPMInterval = 50
-        copyEMtoPop = 3
 
         self.RPM = [generalIndividual(lotNum, lotSizes, machineNum) for i in range(RPMNum)]
         for item in self.RPM:
@@ -247,26 +246,18 @@ class microMBO1(generalPopulation):
                 for i in range(len(thisMakespan)):
                     # 如果是排第一的个体
                     if i == 0:
-                        # dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i + 1][0]] + 300)
-                        # dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i + 1][0]] + 40)
-                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i+1][0]] / max(thisMakespan) + max(thisMakespan))
-                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i+1][0]] / max(thisLoadStd) + max(thisLoadStd))
+                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i+1][0]] + 300)
+                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i+1][0]] + 40)
                     # 如果是排最后的个体
                     elif i == len(thisMakespan)-1 :
-                        # dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i - 1][0]] + 300)
-                        # dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i - 1][0]] + 40)
-                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i - 1][0]] / max(thisMakespan) + max(thisMakespan))
-                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i - 1][0]] / max(thisLoadStd) + max(thisLoadStd))
+                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i - 1][0]] + 300)
+                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i - 1][0]] + 40)
                     # 如果是排中间的个体
                     else:
-                        # dense[makespanSort[i][0]] += thisMakespan[makespanSort[i + 1][0]]
-                        # dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i + 1][0]]
-                        # dense[makespanSort[i][0]] += thisMakespan[makespanSort[i - 1][0]]
-                        # dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i - 1][0]]
-                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i + 1][0]] / max(thisMakespan))
-                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i + 1][0]] / max(thisLoadStd))
-                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i - 1][0]] / max(thisMakespan))
-                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i - 1][0]] / max(thisLoadStd))
+                        dense[makespanSort[i][0]] += thisMakespan[makespanSort[i + 1][0]]
+                        dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i + 1][0]]
+                        dense[makespanSort[i][0]] += thisMakespan[makespanSort[i - 1][0]]
+                        dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i - 1][0]]
                 # print('dense', dense)
                 denseSort = sorted(enumerate(dense), key=lambda x:x[1], reverse = True)
 
@@ -280,6 +271,79 @@ class microMBO1(generalPopulation):
             # print('下一代', [item.loadStd for item in nextIndicidual])
 
             return nextIndicidual
+
+
+        def NSGAIIsortTemp():
+            """
+            功能：对单个个体的所有邻域做NSGAII的排序
+
+            输出：选择后的1个个体
+            """
+            # 计算每个个体被支配了多少次
+            DiList = [] # 支配i的个体数
+            iDList = [] # i支配的个体数
+            for i in range(len(tempIndividual)):
+                Di = 0
+                iD = 0
+                for j in range(len(tempIndividual)):
+                    if i != j:
+                        is_do = dorminate(tempIndividual[i], tempIndividual[j])
+                        if is_do == 1:
+                            iD += 1
+                        elif is_do == 2:
+                            Di += 1
+                DiList.append(Di)
+                iDList.append(iD)
+            # print(DiList, iDList)
+
+            # 分层
+            frontNum = len(set(DiList))
+            front = list(set(DiList))
+            front.sort()
+            frontList = []
+            for frontInd in front:
+                thisFront = []
+                for ind in range(len(tempIndividual)):
+                    if DiList[ind] == frontInd:
+                        thisFront.append(ind)
+                frontList.append(thisFront)
+            # print(frontList)
+
+            # 第一层，如果只有一个个体，则直接返回该个体，如果有两个个体，则返回任意一个，如果有两个以上个体，则计算密度值，返回密度最小的
+            calInd = 0
+            if len(frontList[0]) <= 2:
+                nextIndicidual = copy.deepcopy(tempIndividual[frontList[0][0]])
+            else:
+                thisMakespan = [item.makespan for item in [tempIndividual[ind] for ind in frontList[0]]]
+                thisLoadStd = [item.loadStd for item in [tempIndividual[ind] for ind in frontList[0]]]
+                dense = [0 for i in range(len(thisMakespan))]
+                makespanSort = sorted(enumerate(thisMakespan), key=lambda x: x[1])
+                # print('thisMakespan', thisMakespan)
+                # print('thisLoadStd', thisLoadStd)
+                # print('makespanSort', makespanSort)
+                for i in range(len(thisMakespan)):
+                    # 如果是排第一的个体
+                    if i == 0:
+                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i + 1][0]] + 300)
+                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i + 1][0]] + 40)
+                    # 如果是排最后的个体
+                    elif i == len(thisMakespan) - 1:
+                        dense[makespanSort[i][0]] += (thisMakespan[makespanSort[i - 1][0]] + 300)
+                        dense[makespanSort[i][0]] += (thisLoadStd[makespanSort[i - 1][0]] + 40)
+                    # 如果是排中间的个体
+                    else:
+                        dense[makespanSort[i][0]] += thisMakespan[makespanSort[i + 1][0]]
+                        dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i + 1][0]]
+                        dense[makespanSort[i][0]] += thisMakespan[makespanSort[i - 1][0]]
+                        dense[makespanSort[i][0]] += thisLoadStd[makespanSort[i - 1][0]]
+                # print('dense', dense)
+                denseSort = sorted(enumerate(dense), key=lambda x: x[1], reverse=True)
+                nextIndicidual = copy.deepcopy(tempIndividual[frontList[0][denseSort[0][0]]])
+            return  nextIndicidual
+
+
+
+
 
 ################################################################
 #
@@ -317,22 +381,19 @@ class microMBO1(generalPopulation):
 
                 # 每50iter打印一次内部信息
                 # if(iterInd % 1 == 0):
-                #     print(self.getMakespansOfAllIndividuals())
-                #     print([item.loadStd for item in self.pop])
+                    # print(self.getMakespansOfAllIndividuals())
+                    # print([item.loadStd for item in self.pop])
 
                 # 用PM来初始化种群
-                if iterInd % changePopInterval == 0:
-                    allNum = len(self.RPM) + len(self.NRPM)
-                    selectedNum = random.sample(range(0, allNum), self.popSize)
-                    for i in range(self.popSize):
-                        if selectedNum[i] < len(self.RPM):
-                            self.pop[i] = copy.deepcopy(self.RPM[selectedNum[i]])
-                        else:
-                            self.pop[i] = copy.deepcopy(self.NRPM[selectedNum[i] - len(self.RPM)])
-                # 定期用EM个体替换
-                if iterInd % (changePopInterval * copyEMtoPop) == 0 and len(self.EM) > 0:
-                    self.pop[0] = copy.deepcopy(self.EM[random.randint(0, len(self.EM)-1)])
-                    # print('重新生成pop')
+                # if iterInd % changePopInterval == 0:
+                #     allNum = len(self.RPM) + len(self.NRPM)
+                #     selectedNum = random.sample(range(0, allNum), self.popSize)
+                #     for i in range(self.popSize):
+                #         if selectedNum[i] < len(self.RPM):
+                #             self.pop[i] = copy.deepcopy(self.RPM[selectedNum[i]])
+                #         else:
+                #             self.pop[i] = copy.deepcopy(self.NRPM[selectedNum[i] - len(self.RPM)])
+                #     print('重新生成pop')
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
                 newPop = copy.deepcopy(self.pop)
@@ -346,6 +407,7 @@ class microMBO1(generalPopulation):
                 leaderNei = []
                 leaderNeiMakespan = []
                 # 生成K个邻域解
+                tempIndividual = [self.pop[leaderInd]]
                 for _ in range(K):
                     tempBird = self.pop[leaderInd].neighbourSearch('s1&s2', 1, 1, self.solutionClassName, inplace = 0)
                     leaderNei.append(tempBird)
@@ -353,11 +415,14 @@ class microMBO1(generalPopulation):
 
                     if tempBird.makespan != self.pop[leaderInd].makespan and tempBird.loadStd != self.pop[leaderInd].loadStd:
                         allIndividual.append(tempBird)
+                        tempIndividual.append(tempBird)
                 # 选出最好的邻域解，与领头鸟择优
-                if min(leaderNeiMakespan) <= self.pop[leaderInd].makespan:
-                    bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
-                    bestNei = leaderNei[bestNeiInd]
-                    newPop[leaderInd] = copy.deepcopy(bestNei)
+                bestNei = NSGAIIsortTemp()
+                newPop[leaderInd] = copy.deepcopy(bestNei)
+                # if min(leaderNeiMakespan) <= self.pop[leaderInd].makespan:
+                #     bestNeiInd = leaderNeiMakespan.index(min(leaderNeiMakespan))
+                #     bestNei = leaderNei[bestNeiInd]
+                #     newPop[leaderInd] = copy.deepcopy(bestNei)
 
                 # 左右翼跟随鸟更新
                 for wingInd in [leftWingInd, rightWingInd]:
@@ -371,6 +436,7 @@ class microMBO1(generalPopulation):
                         else:  # 如果不是领头鸟，则跟前一只鸟交叉
                             learnedBird = self.pop[wingInd[indOfWingInd - 1]]
                         # 交叉S次，分别挑最好的解加入邻域集
+                        tempIndividual = [self.pop[birdInd]]
                         for _ in range(S):
                             chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
                             wingNei.append(chosenChild)
@@ -379,8 +445,10 @@ class microMBO1(generalPopulation):
                             child1, child2 = self.pop[birdInd].crossoverBetweenBothSegmentsReturnAllChild(learnedBird, 0.5, 0.5, generalSolution)
                             if child1.makespan != self.pop[birdInd].makespan and child1.loadStd != self.pop[birdInd].loadStd:
                                 allIndividual.append(child1)
+                                tempIndividual.append(child1)
                             if child2.makespan != self.pop[birdInd].makespan and child2.loadStd != self.pop[birdInd].loadStd:
                                 allIndividual.append(child2)
+                                tempIndividual.append(child2)
                             # allIndividual.extend([child1, child2])
                         # 生成该鸟的邻域解，加入邻域集
                         for _ in range(K - S):
@@ -390,16 +458,20 @@ class microMBO1(generalPopulation):
 
                             if tempBird.makespan != self.pop[birdInd].makespan and tempBird.loadStd != self.pop[birdInd].loadStd:
                                 allIndividual.append(tempBird)
+                                tempIndividual.append(tempBird)
                         # 选出最好的邻域解，与该鸟择优
                         # 如果<=了，替换
-                        if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                            bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
-                            bestNei = wingNei[bestNeiInd]
-                            newPop[birdInd] = copy.deepcopy(bestNei)
+                        bestNei = NSGAIIsortTemp()
+                        newPop[birdInd] = copy.deepcopy(bestNei)
+                        # if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                        #     bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                        #     bestNei = wingNei[bestNeiInd]
+                        #     newPop[birdInd] = copy.deepcopy(bestNei)
 
 
 
-                self.pop = copy.deepcopy(NSGAIIsort())
+                # self.pop = copy.deepcopy(NSGAIIsort())
+                self.pop = copy.deepcopy(newPop)
                 # print('新种群', [(item.makespan, item.loadStd) for item in self.pop])
 
                 # 更新EM
@@ -436,9 +508,6 @@ class microMBO1(generalPopulation):
                         # 没有break的ND个体i，要么是支配EM里的某些个体，要么是跟EM个体互不支配，都加进去EM里
                         if is_dor != 2 and is_dor != 3:
                             self.EM.append(copy.deepcopy(self.pop[NDIdividualInd[i]]))
-                            # 放入EM的个体也要放入PM，并删掉随便一个个体
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[i]]))
-                            del self.RPM[0]
                 # 如果EM满了，需要删掉密度大的
                 if len(self.EM) > EMNum:
                     EMMakespan = [item.makespan for item in self.EM]
@@ -468,44 +537,45 @@ class microMBO1(generalPopulation):
                     del self.EM[denseSort[0][0]]  # 删掉密度最大的那个个体
                 # print('EM', [(i.makespan, i.loadStd) for i in self.EM])
 
-                # 更新RPM
-                # 先从RPM选出两个个体，选出两个支配解
-                if iterInd % changePopRPMInterval == 0:
-                    # print('RPM', [i.makespan for i in self.RPM])
-                    # print('RPM', [i.loadStd for i in self.RPM])
-                    NDIdividualInd = findNDIndividual()
-                    RPMInds = random.sample(range(0, len(self.RPM)), 2)
-                    if len(NDIdividualInd) > 2:
-                        NDInds = random.sample(range(0, len(NDIdividualInd)), 2)
-                    else:
-                        NDInds = [i for i in range(len(NDIdividualInd))]
-                    # print('RPMInds', [self.RPM[i].makespan for i in RPMInds])
-                    # print('RPMInds', [self.RPM[i].loadStd for i in RPMInds])
-                    # print('NDInds', [self.pop[NDIdividualInd[i]].makespan for i in NDInds])
-                    # print('NDInds', [self.pop[NDIdividualInd[i]].loadStd for i in NDInds])
-                    # 替换RPM那两个解
-                    if len(NDInds) == 1:
-                        if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
-                            del self.RPM[RPMInds[0]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                        elif dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[1]]) == 1:
-                            del self.RPM[RPMInds[1]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                    else:
-                        if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
-                            del self.RPM[RPMInds[0]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                        if dorminate(self.pop[NDIdividualInd[NDInds[1]]], self.RPM[RPMInds[1]]) == 1:
-                            del self.RPM[RPMInds[1]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[1]]]))
-                    # print('RPM', [(i.makespan, i.loadStd) for i in self.RPM])
-
-                # 定期重新设置NRPM
-                if iterInd % changePopNRPMInterval == 0:
-                    self.NRPM = [generalIndividual(lotNum, lotSizes, machineNum) for i in range(NRPMNum)]
-                    for item in self.NRPM:
-                        item.initializeIndividual()
-                        item.decode(generalSolution)
+                # # 更新RPM
+                # # 先从RPM选出两个个体，选出两个支配解
+                # if iterInd % changePopRPMInterval == 0:
+                #     # print('RPM', [i.makespan for i in self.RPM])
+                #     # print('RPM', [i.loadStd for i in self.RPM])
+                #     NDIdividualInd = findNDIndividual()
+                #     RPMInds = random.sample(range(0, len(self.RPM)), 2)
+                #     if len(NDIdividualInd) > 2:
+                #         NDInds = random.sample(range(0, len(NDIdividualInd)), 2)
+                #     else:
+                #         NDInds = [i for i in range(len(NDIdividualInd))]
+                #     # print('RPMInds', [self.RPM[i].makespan for i in RPMInds])
+                #     # print('RPMInds', [self.RPM[i].loadStd for i in RPMInds])
+                #     # print('NDInds', [self.pop[NDIdividualInd[i]].makespan for i in NDInds])
+                #     # print('NDInds', [self.pop[NDIdividualInd[i]].loadStd for i in NDInds])
+                #     # 替换RPM那两个解
+                #     if len(NDInds) == 1:
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
+                #             del self.RPM[RPMInds[0]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #         elif dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[1]]) == 1:
+                #             del self.RPM[RPMInds[1]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #     else:
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
+                #             del self.RPM[RPMInds[0]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[1]]], self.RPM[RPMInds[1]]) == 1:
+                #             del self.RPM[RPMInds[1]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[1]]]))
+                #     print('RPM', [(i.makespan, i.loadStd) for i in self.RPM])
+                #     # print('RPM', [i.loadStd for i in self.RPM])
+                #
+                # # 定期重新设置NRPM
+                # if iterInd % changePopNRPMInterval == 0:
+                #     self.NRPM = [generalIndividual(lotNum, lotSizes, machineNum) for i in range(NRPMNum)]
+                #     for item in self.NRPM:
+                #         item.initializeIndividual()
+                #         item.decode(generalSolution)
 
                 # 每个iter后的例行公事
                 # 一个iter完成，将生成好的newPop深复制给pop
@@ -542,22 +612,20 @@ class microMBO1(generalPopulation):
                 iterInd = intervalInd * (M + A) + M + a
 
                 # 每50iter打印一次内部信息
-                #     print(self.getMakespansOfAllIndividuals())
-                #     print([item.loadStd for item in self.pop])
+                # if(iterInd % 1 == 0):
+                    # print(self.getMakespansOfAllIndividuals())
+                    # print([item.loadStd for item in self.pop])
 
                 # 用PM来初始化种群
-                if iterInd % changePopInterval == 0:
-                    allNum = len(self.RPM) + len(self.NRPM)
-                    selectedNum = random.sample(range(0, allNum), self.popSize)
-                    for i in range(self.popSize):
-                        if selectedNum[i] < len(self.RPM):
-                            self.pop[i] = copy.deepcopy(self.RPM[selectedNum[i]])
-                        else:
-                            self.pop[i] = copy.deepcopy(self.NRPM[selectedNum[i] - len(self.RPM)])
-                # 定期用EM个体替换
-                if iterInd % (changePopInterval * copyEMtoPop) == 0 and len(self.EM) > 0:
-                    self.pop[0] = copy.deepcopy(self.EM[random.randint(0, len(self.EM) - 1)])
-                    # print('重新生成pop')
+                # if iterInd % changePopInterval == 0:
+                #     allNum = len(self.RPM) + len(self.NRPM)
+                #     selectedNum = random.sample(range(0, allNum), self.popSize)
+                #     for i in range(self.popSize):
+                #         if selectedNum[i] < len(self.RPM):
+                #             self.pop[i] = copy.deepcopy(self.RPM[selectedNum[i]])
+                #         else:
+                #             self.pop[i] = copy.deepcopy(self.NRPM[selectedNum[i] - len(self.RPM)])
+                #     print('重新生成pop')
 
                 # 先把整个种群deepcopy到newPop中，在newPop上操作
                 newPop = copy.deepcopy(self.pop)
@@ -576,6 +644,7 @@ class microMBO1(generalPopulation):
                     learnedBird = self.pop[random.randint(0, self.popSize - 1)]
 
                     # 交叉S次，分别挑最好的解加入邻域集
+                    tempIndividual = [self.pop[birdInd]]
                     for _ in range(S):
                         chosenChild = self.pop[birdInd].crossoverBetweenBothSegmentsReturnBestChild(learnedBird, 0.5, 0.5, generalSolution)
                         wingNei.append(chosenChild)
@@ -584,8 +653,10 @@ class microMBO1(generalPopulation):
                         child1, child2 = self.pop[birdInd].crossoverBetweenBothSegmentsReturnAllChild(learnedBird, 0.5, 0.5, generalSolution)
                         if child1.makespan != self.pop[birdInd].makespan and child1.loadStd != self.pop[birdInd].loadStd:
                             allIndividual.append(child1)
+                            tempIndividual.append(child1)
                         if child2.makespan != self.pop[birdInd].makespan and child2.loadStd != self.pop[birdInd].loadStd:
                             allIndividual.append(child2)
+                            tempIndividual.append(child2)
                         # allIndividual.extend([child1, child2])
                     # 生成该鸟的邻域解，加入邻域集
                     for _ in range(K - S):
@@ -595,15 +666,20 @@ class microMBO1(generalPopulation):
 
                         if tempBird.makespan != self.pop[birdInd].makespan and tempBird.loadStd != self.pop[birdInd].loadStd:
                             allIndividual.append(tempBird)
+                            tempIndividual.append(tempBird)
                     # 选出最好的邻域解，与该鸟择优
                     # 如果<=了，替换
-                    if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
-                        bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
-                        bestNei = wingNei[bestNeiInd]
-                        newPop[birdInd] = copy.deepcopy(bestNei)
+                    bestNei = NSGAIIsortTemp()
+                    newPop[birdInd] = copy.deepcopy(bestNei)
+                    # if min(wingNeiMakespan) <= self.pop[birdInd].makespan:
+                    #     bestNeiInd = wingNeiMakespan.index(min(wingNeiMakespan))
+                    #     bestNei = wingNei[bestNeiInd]
+                    #     newPop[birdInd] = copy.deepcopy(bestNei)
 
-                self.pop = copy.deepcopy(NSGAIIsort())
+                # self.pop = copy.deepcopy(NSGAIIsort())
+                self.pop = copy.deepcopy(newPop)
                 # print('新种群', [(item.makespan, item.loadStd) for item in self.pop])
+
 
                 # 更新EM
                 # 如果EM是空的，全部放进去
@@ -639,9 +715,6 @@ class microMBO1(generalPopulation):
                         # 没有break的ND个体i，要么是支配EM里的某些个体，要么是跟EM个体互不支配，都加进去EM里
                         if is_dor != 2 and is_dor != 3:
                             self.EM.append(copy.deepcopy(self.pop[NDIdividualInd[i]]))
-                            # 放入EM的个体也要放入PM，并删掉随便一个个体
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[i]]))
-                            del self.RPM[0]
                 # 如果EM满了，需要删掉密度大的
                 if len(self.EM) > EMNum:
                     EMMakespan = [item.makespan for item in self.EM]
@@ -654,62 +727,65 @@ class microMBO1(generalPopulation):
                     for i in range(len(EMMakespan)):
                         # 如果是排第一的个体
                         if i == 0:
-                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] + 300)
-                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] + 40)
+                            # dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] + 300)
+                            # dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] + 40)
+                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] / max(EMMakespan) + max(EMMakespan))
+                            dense[makespanSort[i][0]] += (EMLoadStd[makespanSort[i + 1][0]] / max(EMLoadStd) + max(EMLoadStd))
                         # 如果是排最后的个体
                         elif i == len(EMMakespan) - 1:
-                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i - 1][0]] + 300)
-                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i - 1][0]] + 40)
+                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i - 1][0]] / max(EMMakespan) + max(EMMakespan))
+                            dense[makespanSort[i][0]] += (EMLoadStd[makespanSort[i - 1][0]] / max(EMLoadStd) + max(EMLoadStd))
                         # 如果是排中间的个体
                         else:
-                            dense[makespanSort[i][0]] += EMMakespan[makespanSort[i + 1][0]]
-                            dense[makespanSort[i][0]] += EMMakespan[makespanSort[i + 1][0]]
-                            dense[makespanSort[i][0]] += EMMakespan[makespanSort[i - 1][0]]
-                            dense[makespanSort[i][0]] += EMMakespan[makespanSort[i - 1][0]]
+                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i + 1][0]] / max(EMMakespan))
+                            dense[makespanSort[i][0]] += (EMLoadStd[makespanSort[i + 1][0]] / max(EMMakespan))
+                            dense[makespanSort[i][0]] += (EMMakespan[makespanSort[i - 1][0]] / max(EMMakespan))
+                            dense[makespanSort[i][0]] += (EMLoadStd[makespanSort[i - 1][0]] / max(EMMakespan))
                     # print('dense', dense)
                     denseSort = sorted(enumerate(dense), key=lambda x: x[1])
                     del self.EM[denseSort[0][0]]  # 删掉密度最大的那个个体
                 # print('EM', [(i.makespan, i.loadStd) for i in self.EM])
 
 
-                # 更新RPM
-                # 先从RPM选出两个个体，选出两个支配解
-                if iterInd % changePopRPMInterval == 0:
-                    # print('RPM', [i.makespan for i in self.RPM])
-                    # print('RPM', [i.loadStd for i in self.RPM])
-                    NDIdividualInd = findNDIndividual()
-                    RPMInds = random.sample(range(0, len(self.RPM)), 2)
-                    if len(NDIdividualInd) > 2:
-                        NDInds = random.sample(range(0, len(NDIdividualInd)), 2)
-                    else:
-                        NDInds = [i for i in range(len(NDIdividualInd))]
-                    # print('RPMInds', [self.RPM[i].makespan for i in RPMInds])
-                    # print('RPMInds', [self.RPM[i].loadStd for i in RPMInds])
-                    # print('NDInds', [self.pop[NDIdividualInd[i]].makespan for i in NDInds])
-                    # print('NDInds', [self.pop[NDIdividualInd[i]].loadStd for i in NDInds])
-                    # 替换RPM那两个解
-                    if len(NDInds) == 1:
-                        if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
-                            del self.RPM[RPMInds[0]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                        elif dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[1]]) == 1:
-                            del self.RPM[RPMInds[1]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                    else:
-                        if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
-                            del self.RPM[RPMInds[0]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
-                        if dorminate(self.pop[NDIdividualInd[NDInds[1]]], self.RPM[RPMInds[1]]) == 1:
-                            del self.RPM[RPMInds[1]]
-                            self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[1]]]))
-                    # print('RPM', [(i.makespan, i.loadStd) for i in self.RPM])
-
-                # 定期重新设置NRPM
-                if iterInd % changePopNRPMInterval == 0:
-                    self.NRPM = [generalIndividual(lotNum, lotSizes, machineNum) for i in range(NRPMNum)]
-                    for item in self.NRPM:
-                        item.initializeIndividual()
-                        item.decode(generalSolution)
+                # # 更新RPM
+                # # 先从RPM选出两个个体，选出两个支配解
+                # if iterInd % changePopRPMInterval == 0:
+                #     # print('RPM', [i.makespan for i in self.RPM])
+                #     # print('RPM', [i.loadStd for i in self.RPM])
+                #     NDIdividualInd = findNDIndividual()
+                #     RPMInds = random.sample(range(0, len(self.RPM)), 2)
+                #     if len(NDIdividualInd) > 2:
+                #         NDInds = random.sample(range(0, len(NDIdividualInd)), 2)
+                #     else:
+                #         NDInds = [i for i in range(len(NDIdividualInd))]
+                #     # print('RPMInds', [self.RPM[i].makespan for i in RPMInds])
+                #     # print('RPMInds', [self.RPM[i].loadStd for i in RPMInds])
+                #     # print('NDInds', [self.pop[NDIdividualInd[i]].makespan for i in NDInds])
+                #     # print('NDInds', [self.pop[NDIdividualInd[i]].loadStd for i in NDInds])
+                #     # 替换RPM那两个解
+                #     if len(NDInds) == 1:
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
+                #             del self.RPM[RPMInds[0]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #         elif dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[1]]) == 1:
+                #             del self.RPM[RPMInds[1]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #     else:
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[0]]], self.RPM[RPMInds[0]]) == 1:
+                #             del self.RPM[RPMInds[0]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[0]]]))
+                #         if dorminate(self.pop[NDIdividualInd[NDInds[1]]], self.RPM[RPMInds[1]]) == 1:
+                #             del self.RPM[RPMInds[1]]
+                #             self.RPM.append(copy.deepcopy(self.pop[NDIdividualInd[NDInds[1]]]))
+                #     print('RPM', [(i.makespan, i.loadStd) for i in self.RPM])
+                #     # print('RPM', [i.loadStd for i in self.RPM])
+                #
+                # # 定期重新设置NRPM
+                # if iterInd % changePopNRPMInterval == 0:
+                #     self.NRPM = [generalIndividual(lotNum, lotSizes, machineNum) for i in range(NRPMNum)]
+                #     for item in self.NRPM:
+                #         item.initializeIndividual()
+                #         item.decode(generalSolution)
 
                 # 每个iter后的例行公事
                 # 一个iter完成，将生成好的newPop深复制给pop

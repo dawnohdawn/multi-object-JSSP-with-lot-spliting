@@ -10,6 +10,8 @@ from HGA import HGA
 from myPMBO2 import myPMBO1
 from myPMBO1 import PMBO1
 from microMBO1 import microMBO1
+from microMBO2 import microMBO2
+from MOMBO1 import MOMBO1
 
 
 print('构建')
@@ -22,15 +24,17 @@ originalIMGATest = originalIMGA(3, 18, lotNum, lotSizes, machineNum)
 NIMGATest = NIMGA(18, lotNum, lotSizes, machineNum)
 HGATest = HGA(52, lotNum, lotSizes, machineNum)
 microMBO1Test = microMBO1(5, lotNum, lotSizes, machineNum)
+microMBO2Test = microMBO2(5, lotNum, lotSizes, machineNum)
+MOMBO1Test = MOMBO1(51, lotNum, lotSizes, machineNum)
 
 
 
 # print('跑多遍')
-# test = comparisonsOfAlgorithms([myPMBO1Test])
 test = comparisonsOfAlgorithms([microMBO1Test])
-test.runManyTimes(1)
-print('p{}，{}，PMBO1Test，跑2次'.format(problemInd, [item.name for item in test.algorithms]))
-
+# test = comparisonsOfAlgorithms([microMBO2Test])
+# test = comparisonsOfAlgorithms([MOMBO1Test])
+print('p{}，{}，跑5次'.format(problemInd, [item.name for item in test.algorithms]))
+test.runManyTimes(5)
 
 # print('收敛曲线')
 # # test = comparisonsOfAlgorithms([myPMBO1Test])

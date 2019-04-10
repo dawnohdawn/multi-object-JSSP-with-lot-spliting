@@ -46,7 +46,7 @@ class comparisonsOfAlgorithms:
             for algorithmInd in range(self.algorithmNum):
                 print('run:', runInd, self.algorithms[algorithmInd].name)
                 # 设置seed，保证每个算法在同一个循环中都是相同的seed
-                random.seed(runInd+2)
+                random.seed(runInd)
                 # random.seed(2)
                 print('set seed {}'.format(runInd))
                 # 注意不同的对象要使用不同的操作
@@ -74,7 +74,25 @@ class comparisonsOfAlgorithms:
                     # 除了第一次run不用reset model之外，其他run都要
                     if runInd != 0:
                         self.algorithms[algorithmInd].resetPop()
-                    self.algorithms[algorithmInd].iterate(2000, 3, 1, 2, 2, needcalAllMakespan=1, muteEveryIter=0,
+                    self.algorithms[algorithmInd].iterate(8000, 3, 1, 2, 2, needcalAllMakespan=1, muteEveryIter=1,
+                                                          muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
+                                       self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('microMBO2'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetPop()
+                    self.algorithms[algorithmInd].iterate(8000, 3, 1, 2, 2, needcalAllMakespan=1, muteEveryIter=0,
+                                                          muteResult=0, startIter=0, saveDetailsUsingDF=1)
+                    makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
+                    self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
+                                       self.algorithms[algorithmInd].getBestIndividualCodes()])
+                elif self.algorithms[algorithmInd].name.startswith('MOMBO1'):
+                    # 除了第一次run不用reset model之外，其他run都要
+                    if runInd != 0:
+                        self.algorithms[algorithmInd].resetPop()
+                    self.algorithms[algorithmInd].iterate(800, 3, 1, 2, 2, needcalAllMakespan=1, muteEveryIter=1,
                                                           muteResult=0, startIter=0, saveDetailsUsingDF=1)
                     makespansOfThisRun.append(self.algorithms[algorithmInd].getBestMakespan())
                     self.bestCodes.append([self.algorithms[algorithmInd].getBestMakespan(),
@@ -127,6 +145,7 @@ class comparisonsOfAlgorithms:
                                            self.algorithms[algorithmInd].getBestIndividualCodes()])
 
                 print(type(self.algorithms[algorithmInd]), self.algorithms[algorithmInd].getMakespansOfAllIndividuals())
+                print('-----------------------------------------------------------------------------------------------------------')
 
                 # print(self.algorithms[algorithmInd].getBestMakespanOfEveryPop())
 
